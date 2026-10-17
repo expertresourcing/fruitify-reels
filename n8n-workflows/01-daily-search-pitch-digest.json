@@ -1,0 +1,611 @@
+{
+  "name": "FRUiTIFY Outreach - Agents 1-3 (Instagram + Facebook)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "triggerAtHour": 7,
+              "triggerAtMinute": 45
+            }
+          ]
+        }
+      },
+      "id": "a1",
+      "name": "Schedule Mon-Sat 7:45am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hashtag pool by region. Each run picks a random mix across ALL regions.\nconst POOL = {\n  North:   ['delhifruits','gurgaonfruits','noidafruits','lucknowfruits','jaipurfruits','chandigarhfruits','ludhianafruits','dehradunfruits','kanpurfruits','faridabadfruits'],\n  West:    ['mumbaifruits','punefruits','ahmedabadfruits','suratfruits','nagpurfruits','nashikfruits','vadodarafruits','rajkotfruits'],\n  South:   ['bengalurufruits','bangalorefruits','chennaifruits','hyderabadfruits','kochifruits','coimbatorefruits','mysorefruits','vizagfruits','maduraifruits'],\n  East:    ['kolkatafruits','patnafruits','bhubaneswarfruits','guwahatifruits','ranchifruits','siligurifruits'],\n  Central: ['indorefruits','bhopalfruits','raipurfruits','jabalpurfruits','gwaliorfruits'],\n  AllIndia:['fruitshopindia','freshfruitsindia','fruitsdelivery','exoticfruitsindia','fruitshop','fruitwala']\n};\nconst TOTAL_TAGS = 12;\nconst regions = Object.keys(POOL);\nconst weights = regions.map(() => 0.2 + Math.random());           // random share for each region\nconst sum = weights.reduce((a, b) => a + b, 0);\nconst picked = new Set();\nregions.forEach((r, i) => {\n  const n = Math.max(1, Math.round(TOTAL_TAGS * weights[i] / sum));\n  const tags = [...POOL[r]].sort(() => Math.random() - 0.5).slice(0, n);\n  tags.forEach(t => picked.add(t));\n});\nconst hashtags = [...picked].sort(() => Math.random() - 0.5).slice(0, TOTAL_TAGS + 2);\nreturn [{ json: { hashtags, mix: regions.map((r, i) => r + ' ' + Math.round(100 * weights[i] / sum) + '%').join(', ') } }];"
+      },
+      "id": "a2",
+      "name": "Today's hashtags",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/run-sync-get-dataset-items?timeout=300",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ hashtags: $json.hashtags, resultsLimit: 15 }) }}",
+        "options": {
+          "timeout": 320000
+        }
+      },
+      "id": "a3",
+      "name": "Apify Hashtag Scraper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "IxWn3FeOvs2hA2Ns",
+          "name": "Query Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const names = new Set();\nfor (const item of $input.all()) {\n  const u = item.json.ownerUsername;\n  if (u) names.add(u);\n}\nreturn [{ json: { usernames: [...names].slice(0, 120) } }];"
+      },
+      "id": "a4",
+      "name": "Collect usernames",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?timeout=300",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ usernames: $json.usernames }) }}",
+        "options": {
+          "timeout": 320000
+        }
+      },
+      "id": "a5",
+      "name": "Apify Profile Scraper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "IxWn3FeOvs2hA2Ns",
+          "name": "Query Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const shopWords = ['fruit','phal','फल','फळ','ફળ','ফল','பழ','పండ్','ಹಣ್ಣು','പഴ','mandi','juice','shop','store','dukaan','wholesale','delivery'];\nconst phoneRe = /(?:\\+?91[\\s-]?)?[6-9]\\d{4}[\\s-]?\\d{5}/;\nconst out = [];\nfor (const item of $input.all()) {\n  const p = item.json;\n  if (!p.username || p.private || p.isPrivate) continue;\n  const links = [p.externalUrl, ...(p.externalUrls || []).map(l => l.url || l), ...(p.bioLinks || []).map(l => l.url || l)]\n    .filter(Boolean).map(l => String(l).toLowerCase())\n    .filter(l => !['maps.app.goo.gl','goo.gl/maps','google.com/maps','maps.google','facebook.com','fb.com','fb.me','instagram.com','youtube.com','youtu.be','threads.net'].some(d => l.includes(d)));\n  const isWhatsApp = links.some(l => l.includes('wa.me') || l.includes('whatsapp'));\n  const isLinkPage = links.some(l => l.includes('linktr.ee') || l.includes('linkin.bio') || l.includes('bio.link'));\n  let linkType;\n  if (links.length === 0) linkType = 'No link';\n  else if (isWhatsApp) linkType = 'WhatsApp link';\n  else if (isLinkPage) linkType = 'Link page - check manually';\n  else continue;\n  const text = [p.fullName, p.biography, p.businessCategoryName, p.username].join(' ').toLowerCase();\n  if (!(shopWords.some(w => text.includes(w)) || p.isBusinessAccount === true)) continue;\n  const bioPhone = (p.biography || '').match(phoneRe);\n  out.push({ json: {\n    platform: 'Instagram', messageUrl: 'https://ig.me/m/' + p.username,\n    username: p.username,\n    profileUrl: 'https://www.instagram.com/' + p.username + '/',\n    name: p.fullName || p.username,\n    bio: p.biography || '',\n    followers: p.followersCount ?? p.followerCount ?? '',\n    linkType,\n    link: links[0] || '',\n    phone: p.businessPhoneNumber || (bioPhone ? bioPhone[0] : ''),\n    city: p.city || (p.location && p.location.city) || '',\n    category: p.businessCategoryName || ''\n  }});\n}\nreturn out.slice(0, 120);"
+      },
+      "id": "a6",
+      "name": "Keep manual order-takers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// VOICE SPEAKER SETTING - change name/gender here (e.g. { name: 'Neha', gender: 'female' })\nconst SPEAKER = { name: 'Ankur', gender: 'male' };\nconst SYSTEM = \"You are the outreach writer for FRUiTIFY (fruitifyindia.com), a platform run by Expert Resourcing Pvt. Ltd. in Gurugram. Ankur, the founder, sends every message himself by hand. You only draft.\\n\\nWHAT FRUiTIFY OFFERS A FRUIT SELLER (use only these facts, never invent others):\\n- Their own online fruit shop with its own web link (like theirshop.fruitifyindia.com) that they can share on Instagram, WhatsApp and with regular customers.\\n- Customers open the link, pick fruits and place the order themselves - no long WhatsApp lists, no missed calls.\\n- Fruit is charged by exact weight, and orders come from the seller's own known shop, so customers deal with a real person they trust.\\n- Offer: 2 MONTHS FREE TRIAL, after that a paid plan. Never say \\\"free forever\\\", \\\"bilkul free\\\", \\\"lifetime free\\\" (not even \\\"bilkul free trial\\\") or quote any price.\\n- Ankur's team helps with the setup. Do not promise a number of minutes.\\n- Contact: WhatsApp or call +91 96117 01149.\\n\\nPITCH FRAMEWORK (weave in naturally, do not list):\\n1. A genuine, specific compliment drawn from their bio, name, city or category.\\n2. Pain: when the shop is busy, phone calls get missed and the sale is lost.\\n3. Pain: customers find typing long fruit lists on WhatsApp tiring, so they drift to big quick-delivery apps and dark stores. Never name any company or app (no Zepto, Blinkit, Instamart, Swiggy, BigBasket, Amazon, Flipkart etc.).\\n4. Solution: their own FRUiTIFY order link.\\n5. Offer: 2 months free trial, then a paid plan.\\n6. Call to action: reply here, or WhatsApp/call +91 96117 01149.\\nSign off as: Ankur, FRUiTIFY\\n\\nLANGUAGE RULES:\\n- Work out the seller's state/region from city, bio, address, hashtags or PIN code. If unsure, say so in \\\"region_reason\\\".\\n- Write in the seller's native language the way local shop owners actually text: warm, respectful, conversational, everyday English words (online, order, link, WhatsApp, free trial) are fine.\\n  * Hindi belt (Delhi NCR, Haryana, UP, Bihar, MP, Rajasthan, Uttarakhand, Jharkhand, Chhattisgarh, HP): Hindi in Devanagari script.\\n  * Maharashtra: Marathi. Gujarat: Gujarati. West Bengal: Bengali. Tamil Nadu: Tamil. Karnataka: Kannada. Telangana/Andhra: Telugu. Kerala: Malayalam. Odisha: Odia. Assam: Assamese. Punjab may use Punjabi if the bio is in Punjabi.\\n  * Big mixed cities (Mumbai, Bengaluru, Hyderabad, Pune, Chennai): use the main local language of that city in its own script (Marathi, Kannada, Telugu, Tamil), or Hindi in Devanagari if the seller is clearly from the Hindi belt.\\n  * If the bio itself is in some language/script, follow that.\\n- Use the language's own script for non-Hindi languages.\\n- NEVER write the DM or the voice script in English, and NEVER write an Indian language in Roman/English letters (no Hinglish). Only the brand FRUiTIFY, the phone number and the app names WhatsApp and Instagram may stay in English letters. Write EVERY other word in the language's own script, including English loan words: e.g. in Hindi write ऑनलाइन, ऑर्डर, लिंक, फ्री ट्रायल, पेड प्लान, डिलीवरी, सेटअप, रिप्लाई, कॉल (never online, order, link, free trial, paid plan, delivery, setup, reply, call in Roman letters); do the same in every other script. The shop's own name may stay as the shop writes it.\\n- DM (Instagram or Facebook Messenger, as given): 60 to 100 words. No hashtags, no more than 2 emojis.\\n- Voice script: same language, 25 to 40 seconds when spoken. It will be read aloud by a computer voice, so write it in the language's own script - for Hinglish/Hindi use Devanagari (keep common English words like online, order, link, WhatsApp, free trial as they are), friendly human tone, In the voice script ONLY: write the brand name as the exact token {{BRAND}} (never FRUiTIFY or Fruitify), never read out a web address, and where the phone number goes write the exact token {{PHONE}} (never digits) - the system fills both in correctly for the language. End with the number, e.g. 'WhatsApp ya call kijiye {{PHONE}}' in the right language and script.\\n- VOICE SPEAKER: the voice note is spoken by the speaker named in the request (name and gender given). The speaker introduces themselves by that name, from FRUiTIFY, and every verb and word that refers to the speaker must use the speaker's grammatical gender (e.g. Hindi male: \\\"bol raha hoon\\\", female: \\\"bol rahi hoon\\\"; same care in Marathi, Gujarati and other gendered languages). The DM text is always signed \\\"Ankur, FRUiTIFY\\\".\\n- Never claim anything about the seller you cannot see in their data. Never mention scraping or that you found them through a tool.\\n\\nOUTPUT: reply with ONLY these tags, each on its own, nothing before or after:\\n<region></region>\\n<region_reason></region_reason>\\n<language></language>\\n<language_reason></language_reason>\\n<dm_pitch></dm_pitch>\\n<dm_pitch_english></dm_pitch_english>\\n<voice_script></voice_script>\\n<voice_language_code></voice_language_code>\\n<fit_score></fit_score>\\n<fit_reason></fit_reason>\\n\\\"dm_pitch_english\\\" is a plain English translation so Ankur can understand it. \\\"fit_score\\\" is a single number 1-5: how likely this account is a real fruit seller who could use an online shop (5 = clearly a fruit shop). \\\"voice_language_code\\\" is the Google voice locale for the voice script: hi-IN, mr-IN, gu-IN, bn-IN, ta-IN, te-IN, kn-IN, ml-IN, pa-IN or en-IN.\";\nreturn $input.all().map(item => {\n  const v = item.json;\n  const vendor = { platform: v.platform || 'Instagram', handle: v.username, name: v.name, bio: v.bio, followers: v.followers, city: v.city, category: v.category, link_in_bio: v.link, link_type: v.linkType };\n  return { json: { ...v, speakerName: SPEAKER.name, speakerGender: SPEAKER.gender, claudeRequest: {\n    model: 'claude-sonnet-5-5',\n    max_tokens: 4000,\n    output_config: { effort: 'low' },\n    system: SYSTEM,\n    messages: [{ role: 'user', content: 'Voice note speaker: ' + SPEAKER.name + ' (' + SPEAKER.gender + ')\\n' + 'Write the outreach for this fruit seller (message will be sent on ' + (v.platform || 'Instagram') + '):\\n' + JSON.stringify(vendor, null, 2) }]\n  } } };\n});"
+      },
+      "id": "b1",
+      "name": "Prepare pitch request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.claudeRequest) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 3,
+              "batchInterval": 2000
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "b2",
+      "name": "Claude Sonnet - write pitch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        -100
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "IXiBPjt3T9cyDo8I",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const vendors = $('Prepare pitch request').all();\nconst keys = ['region','region_reason','language','language_reason','dm_pitch','dm_pitch_english','voice_script','voice_language_code','fit_score','fit_reason'];\nreturn $input.all().map((item, i) => {\n  const v = { ...vendors[i].json };\n  delete v.claudeRequest;\n  const raw = (item.json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  const usage = item.json.usage || {};\n  const p = {};\n  for (const k of keys) {\n    const m = raw.match(new RegExp('<' + k + '>([\\\\s\\\\S]*?)</' + k + '>'));\n    p[k] = m ? m[1].trim() : '';\n  }\n  p.fit_score = Number(p.fit_score) || '';\n  if (!p.dm_pitch || !p.voice_script) p.error = 'Could not read pitch';\n  return { json: { ...v, ...p, tokensIn: usage.input_tokens, tokensOut: usage.output_tokens, pitchDate: $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd') } };\n});"
+      },
+      "id": "b3",
+      "name": "Read pitch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "c0",
+      "name": "Read CRM sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1540,
+        -100
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set($('Read CRM sheet').all().map(r => String(r.json.Instagram || '').toLowerCase()).filter(Boolean));\nreturn $('All new leads').all().filter(i => i.json.username && !seen.has(String(i.json.username).toLowerCase())).slice(0, 90).map(i => ({ json: i.json }));"
+      },
+      "id": "c1",
+      "name": "Only new vendors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Read pitch').all().filter(i => !i.json.error).map(i => {\n  const v = i.json;\n  return { json: {\n    'Date': v.pitchDate, 'Instagram': v.username, 'Profile link': v.profileUrl, 'Name': v.name, 'City': v.city,\n    'Region': v.region || '', 'Language': v.language || '', 'Fit score': v.fit_score || '', 'Fit reason': v.fit_reason || '',\n    'Followers': v.followers, 'Phone': v.phone, 'Link in bio': v.link, 'Link type': v.linkType, 'Bio': v.bio,\n    'DM pitch': v.dm_pitch || '', 'DM pitch (English)': v.dm_pitch_english || '', 'Voice script': v.voice_script || '',\n    'Voice note link': '', 'Status': 'New - awaiting your OK', 'Your notes': '', 'Vendor reply': '', 'Next reply draft': '',\n    'Voice language': v.voice_language_code || '', 'Voice speaker': (v.speakerName || 'Ankur') + ' (' + (v.speakerGender || 'male') + ')',\n    'Approved on': '', 'Sent on': '', 'Platform': v.platform || 'Instagram', 'Message link': v.messageUrl || ''\n  } };\n});"
+      },
+      "id": "c6",
+      "name": "Prepare CRM row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "c7",
+      "name": "Add to CRM sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2860,
+        -100
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $('Prepare CRM row').all().map(i => i.json).sort((a, b) => (b['Fit score'] || 0) - (a['Fit score'] || 0));\nconst held = $('Read pitch').all().filter(i => i.json.error).length;\nconst link = (u, a) => 'https://fruitifyindia.app.n8n.cloud/webhook/fruitify-review?u=' + encodeURIComponent(u) + '&a=' + a + '&k=<APPROVAL_KEY>';\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');\nconst cards = rows.map((r, n) => `\n<div style=\"border:1px solid #d9e2dc;border-radius:10px;padding:14px;margin:0 0 14px;font-family:Arial,sans-serif\">\n  <div style=\"font-size:16px;font-weight:bold\">${n + 1}. ${esc(r.Name)} <span style=\"color:#2e7d4f\">(fit ${r['Fit score']}/5)</span></div>\n  <div style=\"color:#555;font-size:13px\">${esc(r.Platform || 'Instagram')} &middot; ${esc(r.Region)} &middot; ${esc(r.Language)} &middot; ${esc(r.Followers)} followers ${r.Phone ? '&middot; Phone ' + esc(r.Phone) : ''}</div>\n  <p style=\"margin:8px 0\"><a href=\"${r['Profile link']}\">Open ${r.Platform === 'Facebook' ? 'Facebook page' : 'Instagram profile'}</a></p><p style=\"margin:10px 0\"><a href=\"${link(r.Instagram,'approve')}\" style=\"background:#1f7a4a;color:#fff;padding:9px 18px;border-radius:6px;text-decoration:none;font-weight:bold\">Approve</a> &nbsp; <a href=\"${link(r.Instagram,'skip')}\" style=\"background:#eee;color:#333;padding:9px 18px;border-radius:6px;text-decoration:none\">Skip</a></p>\n  <div style=\"background:#f3f8f5;padding:10px;border-radius:8px;font-size:15px\">${esc(r['DM pitch'])}</div>\n  <div style=\"color:#666;font-size:12px;margin-top:6px\"><b>English:</b> ${esc(r['DM pitch (English)'])}</div>\n  <div style=\"color:#999;font-size:12px;margin-top:6px\">Why this account: ${esc(r['Fit reason'])}</div>\n</div>`).join('');\nconst html = `<div style=\"max-width:680px\">\n<h2 style=\"font-family:Arial,sans-serif;color:#1f5f3f\">FRUiTIFY - ${rows.length} new vendor pitches for ${$now.setZone('Asia/Kolkata').toFormat('d LLL yyyy')}</h2>\n<p style=\"font-family:Arial,sans-serif;font-size:14px\">Nothing has been sent. Tap Approve for each vendor you want to contact today (up to the daily limit) or Skip. From 9:30 am the approved ones are prepared one by one in your Instagram for you to press Send. Full details are in the <a href=\"https://docs.google.com/spreadsheets/d/1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw/edit\">CRM sheet</a>.</p>\n<p style=\"margin:14px 0 22px\"><a href=\"https://fruitifyindia.app.n8n.cloud/webhook/fruitify-review?k=<APPROVAL_KEY>&all=1\" style=\"background:#1f7a4a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif;font-size:16px\">Approve all (best-fit first, up to the daily limit)</a></p>\n${held ? '<p style=\"font-family:Arial,sans-serif;font-size:13px;color:#a15c00\">' + held + ' pitch(es) could not be written properly today and will be retried automatically in the next run.</p>' : ''}${cards}</div>`;\nreturn [{ json: { subject: 'FRUiTIFY: ' + rows.length + ' vendor pitches ready for your OK - ' + $now.setZone('Asia/Kolkata').toFormat('d LLL'), html } }];"
+      },
+      "id": "c8",
+      "name": "Build daily digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        -100
+      ],
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "sendTo": "expertresourcing@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "c9",
+      "name": "Email digest to Ankur",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3300,
+        -100
+      ],
+      "webhookId": "33f287df-6cb0-461d-9dff-f3b5f5ec4817",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NxBrjfizJOdieIgr",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "f1",
+      "name": "Today's Facebook search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        -200
+      ],
+      "parameters": {
+        "jsCode": "// Random cities across all regions for the Facebook Page search\nconst CITIES = ['Delhi','Gurgaon','Noida','Faridabad','Lucknow','Jaipur','Chandigarh','Ludhiana','Kanpur','Dehradun',\n  'Mumbai','Pune','Ahmedabad','Surat','Nagpur','Nashik','Vadodara','Rajkot',\n  'Bengaluru','Chennai','Hyderabad','Kochi','Coimbatore','Mysore','Visakhapatnam','Madurai',\n  'Kolkata','Patna','Bhubaneswar','Guwahati','Ranchi','Siliguri',\n  'Indore','Bhopal','Raipur','Jabalpur','Gwalior'];\nconst cities = [...CITIES].sort(() => Math.random() - 0.5).slice(0, 4);\nreturn [{ json: { categories: ['fruit shop', 'fresh fruits', 'fruit wala'], locations: cities.map(c => c + ', India'), searchType: 'pages', resultsLimit: 40 } }];"
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~facebook-search-scraper/run-sync-get-dataset-items?timeout=300",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 320000
+        }
+      },
+      "id": "f2",
+      "name": "Apify Facebook Page search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        -200
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "IxWn3FeOvs2hA2Ns",
+          "name": "Query Auth account"
+        }
+      }
+    },
+    {
+      "id": "f3",
+      "name": "Keep Facebook manual order-takers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -200
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "jsCode": "// Works with both the basic page search (name, url, id, description) and the detailed one (title, pageName, website, phone...)\nconst shopWords = ['fruit','phal','फल','फळ','ફળ','ফল','பழ','పండ్','ಹಣ್ಣು','പഴ','mandi','juice','grocery','vegetable','sabzi','kirana'];\nconst seen = new Set();\nconst out = [];\nfor (const item of $input.all()) {\n  const p = item.json;\n  const id = String(p.pageId || p.facebookId || p.id || '');\n  const handle = p.pageName || id;\n  if (!handle || seen.has(handle)) continue;\n  seen.add(handle);\n  const site = String(p.website || '').toLowerCase();\n  const isWa = site.includes('wa.me') || site.includes('whatsapp');\n  const isSocial = !site || ['facebook.com','instagram.com','linktr.ee','youtube.com','goo.gl/maps','google.com/maps'].some(d => site.includes(d));\n  if (!isWa && !isSocial) continue;                         // has a real website - skip\n  const name = p.title || p.name || handle;\n  const bio = [p.description, p.info, p.about_me].filter(Boolean).join(' ');\n  const text = [name, (p.categories || []).join(' '), bio].join(' ').toLowerCase();\n  if (!shopWords.some(w => text.includes(w))) continue;\n  const city = p.address || (decodeURIComponent(String(p.facebookUrl || '')).match(/q=[^&]*?(?:shop|fruits|wala) ([^,&]+)/i) || [])[1] || '';\n  out.push({ json: {\n    platform: 'Facebook', username: 'fb:' + handle,\n    profileUrl: p.pageUrl || p.url || ('https://www.facebook.com/' + handle),\n    messageUrl: 'https://m.me/' + (p.pageName || id),\n    name, bio: bio.slice(0, 600), followers: p.followers ?? p.likes ?? '',\n    linkType: isWa ? 'WhatsApp link' : (site ? 'No website' : 'No website listed'), link: p.website || '',\n    phone: p.phone || '', city, category: (p.categories || []).join(', ')\n  } });\n}\nreturn out.slice(0, 40);"
+      }
+    },
+    {
+      "id": "m1",
+      "name": "All new leads",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        -100
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Today's hashtags": {
+      "main": [
+        [
+          {
+            "node": "Apify Hashtag Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Hashtag Scraper": {
+      "main": [
+        [
+          {
+            "node": "Collect usernames",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect usernames": {
+      "main": [
+        [
+          {
+            "node": "Apify Profile Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Profile Scraper": {
+      "main": [
+        [
+          {
+            "node": "Keep manual order-takers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep manual order-takers": {
+      "main": [
+        [
+          {
+            "node": "All new leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare pitch request": {
+      "main": [
+        [
+          {
+            "node": "Claude Sonnet - write pitch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Sonnet - write pitch": {
+      "main": [
+        [
+          {
+            "node": "Read pitch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM sheet": {
+      "main": [
+        [
+          {
+            "node": "Only new vendors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only new vendors": {
+      "main": [
+        [
+          {
+            "node": "Prepare pitch request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read pitch": {
+      "main": [
+        [
+          {
+            "node": "Prepare CRM row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare CRM row": {
+      "main": [
+        [
+          {
+            "node": "Add to CRM sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to CRM sheet": {
+      "main": [
+        [
+          {
+            "node": "Build daily digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build daily digest": {
+      "main": [
+        [
+          {
+            "node": "Email digest to Ankur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Mon-Sat 7:45am": {
+      "main": [
+        [
+          {
+            "node": "Today's hashtags",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Today's Facebook search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Today's Facebook search": {
+      "main": [
+        [
+          {
+            "node": "Apify Facebook Page search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Facebook Page search": {
+      "main": [
+        [
+          {
+            "node": "Keep Facebook manual order-takers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Facebook manual order-takers": {
+      "main": [
+        [
+          {
+            "node": "All new leads",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "All new leads": {
+      "main": [
+        [
+          {
+            "node": "Read CRM sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
