@@ -1,0 +1,63 @@
+{
+  "name": "FRUiTIFY Meta - privacy policy page",
+  "nodes": [
+    {
+      "id": "v1",
+      "name": "Privacy page opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a41",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fruitify-privacy",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "v2",
+      "name": "Show privacy policy",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY Outreach - Privacy Policy</title>\n<style>body{font-family:Arial,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#222;line-height:1.55}h1{color:#1f5f3f}h2{color:#1f5f3f;font-size:19px;margin-top:28px}</style></head><body>\n<h1>FRUiTIFY Outreach – Privacy Policy</h1>\n<p>Last updated: 17 October 2026</p>\n<p>This policy covers the FRUiTIFY Outreach app, which FRUiTIFY (fruitifyindia.com), a brand of Expert Resourcing Pvt. Ltd., 326, 3rd Floor, Vipul Trade Centre, Sector 48, Gurugram, Haryana, India, uses to manage messages and comments on its own Instagram and Facebook accounts.</p>\n<h2>What we collect</h2>\n<p>When you comment on our posts or send a message to our Instagram or Facebook account, we receive your public username, your account ID, the text of your comment or message, and its time. For fruit sellers we may contact, we also keep the public information on their business profile (shop name, bio, public contact details and city).</p>\n<h2>How we use it</h2>\n<p>Only to reply to you, to tell you about FRUiTIFY's online shop service for fruit sellers, and to keep a record of our conversation with you. Replies may be drafted with the help of AI tools; every first contact and every reply to a direct message is reviewed by a person before it is sent. We do not sell your information, and we do not use it for advertising.</p>\n<h2>Who processes it</h2>\n<p>Our records are kept in our Google Workspace (Google Sheets, Gmail, Google Drive) and processed by our automation service (n8n) and AI service (Anthropic). These providers act on our behalf only.</p>\n<h2>How long we keep it</h2>\n<p>As long as we are in conversation with you and up to 12 months after our last message, unless you ask us to delete it sooner.</p>\n<h2>Deleting your data</h2>\n<p>Send \"DELETE MY DATA\" as a message to our Instagram account @fruitify.india.byanay, or email info@expertresourcing.in with your username. We delete your records within 7 days and confirm by reply.</p>\n<h2>Contact</h2>\n<p>Expert Resourcing Pvt. Ltd. (FRUiTIFY) · info@expertresourcing.in · WhatsApp/Call +91 96117 01149</p>\n</body></html>",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Privacy page opened": {
+      "main": [
+        [
+          {
+            "node": "Show privacy policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "executionOrder": "v1"
+  }
+}
