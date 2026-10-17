@@ -1,0 +1,497 @@
+{
+  "name": "FRUiTIFY Outreach - Agent 4 Reply helper",
+  "nodes": [
+    {
+      "id": "h1",
+      "name": "Helper opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a11",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fruitify-reply",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "h2",
+      "name": "Read CRM (list)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "h3",
+      "name": "Helper page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body) => '<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY Reply helper</title><style>body{font-family:Arial,sans-serif;max-width:640px;margin:24px auto;padding:0 16px;color:#222}textarea,input,select{width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid #ccd;border-radius:8px}button{background:#1f7a4a;color:#fff;border:0;padding:12px 22px;border-radius:8px;font-size:16px}.box{background:#f3f8f5;padding:12px;border-radius:8px;white-space:pre-wrap}</style></head><body><h2 style=\"color:#1f5f3f\">' + title + '</h2>' + body + '</body></html>';\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\"/g,'&quot;');\n\nconst q = $('Helper opened').first().json.query || {};\nif (q.k !== '<APPROVAL_KEY>') return [{ json: { html: page('Link not valid', '') } }];\nconst rows = $('Read CRM (list)').all().map(r => r.json).filter(r => r.Instagram);\nconst order = s => /^Sent|^Replied/.test(s) ? 0 : /^Approved/.test(s) ? 1 : 2;\nrows.sort((a, b) => order(a.Status) - order(b.Status));\nconst opts = rows.map(r => '<option value=\"' + esc(r.Instagram) + '\"' + (q.u === r.Instagram ? ' selected' : '') + '>' + esc(r.Name) + ' (@' + esc(r.Instagram) + ') - ' + esc(r.Status) + '</option>').join('');\nconst body = '<p style=\"color:#555\">Pick the vendor, paste what they wrote, and get a reply in their language. Nothing is sent - you copy it into Instagram yourself.</p>' +\n  '<form method=\"POST\"><input type=\"hidden\" name=\"k\" value=\"' + esc(q.k) + '\"><p><b>Vendor</b><br><select name=\"u\">' + opts + '</select></p>' +\n  '<p><b>Their message</b><br><textarea name=\"m\" rows=\"6\" required placeholder=\"Paste the vendor\\'s reply here\"></textarea></p>' +\n  '<p><b>Anything you want the reply to say?</b> (optional, in English)<br><input name=\"h\" placeholder=\"e.g. ask for a call tomorrow 5 pm\"></p><button>Draft my reply</button></form>';\nreturn [{ json: { html: page('Reply helper', body) } }];"
+      }
+    },
+    {
+      "id": "h4",
+      "name": "Show helper",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "r1",
+      "name": "Reply submitted",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a12",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fruitify-reply",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "r2",
+      "name": "Read CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        300
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "r3",
+      "name": "Prepare reply request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const SYSTEM = \"You are helping Ankur, founder of FRUiTIFY (fruitifyindia.com, run by Expert Resourcing Pvt. Ltd., Gurugram), reply to an Instagram fruit seller who answered his outreach. Ankur sends every message himself; you only draft.\\n\\nFACTS YOU MAY USE (never invent anything else):\\n- FRUiTIFY gives a fruit seller their own online fruit shop with its own link (like theirshop.fruitifyindia.com) to share on Instagram, WhatsApp and with regular customers.\\n- Customers open the link, pick fruits and order themselves - no long WhatsApp lists, no missed calls. Fruit is charged by exact weight. Orders come from the seller's own known shop.\\n- The seller's team gets screens for adding fruits and prices, stock, orders, delivery partners and simple business reports.\\n- Offer: 2 MONTHS FREE TRIAL, then a paid plan. The plan is agreed case by case with Ankur (a subscription or a revenue share) - never quote a price; never use the words \\\"bilkul free\\\", \\\"free forever\\\" or \\\"lifetime free\\\" (say \\\"2 mahine ka free trial\\\" or the same in their language); say Ankur will explain the plan on a call.\\n- Ankur's team helps with the setup. Do not promise how many minutes or days it takes.\\n- Contact: WhatsApp or call +91 96117 01149.\\n- Never name any competitor app or company. Never claim cold-chain, delivery times, guarantees, or anything not listed here. If the seller asks something you cannot answer from these facts, say Ankur will confirm it on a call.\\n\\nHOW TO REPLY:\\n- Reply in the seller's language written in that language's OWN native script - Hindi or Hinglish in Devanagari, Tamil in Tamil script, Gujarati in Gujarati script, and so on - even if they typed in English/Roman letters. NEVER reply in English and NEVER write an Indian language in Roman letters. Only FRUiTIFY, the phone number and the app names WhatsApp and Instagram may stay in English letters. Write EVERY other word in the language's own script, including English loan words (e.g. in Hindi: ऑनलाइन, ऑर्डर, लिंक, फ्री ट्रायल, पेड प्लान, डिलीवरी, सेटअप; never online, order, link, free trial in Roman letters); do the same in every other script. Warm, respectful, short (25-70 words), like a real shop owner chatting. At most one emoji.\\n- Answer their actual question or concern first. Then move them one step forward: usually ask for a good time for a short call, or their WhatsApp number, or invite them to WhatsApp +91 96117 01149.\\n- If they say not interested, thank them politely and close kindly without pushing.\\n- If the message is rude, spam or unrelated, draft a short polite close.\\n- Sign off: - Ankur\\n\\nOUTPUT ONLY these tags:\\n<reply></reply>\\n<reply_english></reply_english>\\n<intent></intent>   (one of: interested, question, wants_call, not_interested, other)\\n<note_for_ankur></note_for_ankur>   (one short line in English: what they want / what to do next)\";\nconst b = $('Reply submitted').first().json.body || {};\nif (b.k !== '<APPROVAL_KEY>') return [{ json: { invalid: true } }];\nconst row = $('Read CRM').all().map(r => r.json).find(r => String(r.Instagram).toLowerCase() === String(b.u || '').toLowerCase());\nif (!row || !String(b.m || '').trim()) return [{ json: { invalid: true } }];\nconst context = { shop: row.Name, instagram: row.Instagram, region: row.Region, language_we_used: row.Language, bio: row.Bio,\n  our_first_message: row['DM pitch'], their_earlier_reply: row['Vendor reply'] || '', our_earlier_draft: row['Next reply draft'] || '' };\nconst content = 'Seller details and conversation so far:\\n' + JSON.stringify(context, null, 2) + '\\n\\nTheir NEW message:\\n' + String(b.m) + (b.h ? '\\n\\nAnkur wants the reply to: ' + String(b.h) : '');\nreturn [{ json: { u: row.Instagram, name: row.Name, message: String(b.m), earlier: row['Vendor reply'] || '', status: row.Status,\n  claudeRequest: { model: 'claude-sonnet-5-5', max_tokens: 3000, output_config: { effort: 'low' }, system: SYSTEM, messages: [{ role: 'user', content }] } } }];"
+      }
+    },
+    {
+      "id": "r4",
+      "name": "Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.invalid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.claudeRequest) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "r5",
+      "name": "Claude Sonnet - draft reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        200
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "IXiBPjt3T9cyDo8I",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "id": "r6",
+      "name": "Read draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const d = $('Prepare reply request').first().json;\nconst raw = ($input.first().json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\nconst t = k => { const m = raw.match(new RegExp('<' + k + '>([\\\\s\\\\S]*?)</' + k + '>')); return m ? m[1].trim() : ''; };\nconst now = $now.setZone('Asia/Kolkata').toFormat('d LLL HH:mm');\nconst log = (d.earlier ? d.earlier + '\\n---\\n' : '') + '[' + now + '] ' + d.message;\nconst statusByIntent = { not_interested: 'Not interested', wants_call: 'Replied - wants a call', interested: 'Replied - interested', question: 'Replied - has questions' };\nreturn [{ json: { ...d, reply: t('reply'), reply_english: t('reply_english'), intent: t('intent'), note: t('note_for_ankur'), log,\n  newStatus: statusByIntent[t('intent')] || 'Replied - draft ready' } }];"
+      }
+    },
+    {
+      "id": "r7",
+      "name": "Save to CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        200
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "value": {
+            "Instagram": "={{ $json.u }}",
+            "Vendor reply": "={{ $json.log }}",
+            "Next reply draft": "={{ $json.reply }}",
+            "Status": "={{ $json.newStatus }}"
+          },
+          "schema": [
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Vendor reply",
+              "displayName": "Vendor reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next reply draft",
+              "displayName": "Next reply draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Your notes",
+              "displayName": "Your notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "r8",
+      "name": "Draft page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body) => '<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY Reply helper</title><style>body{font-family:Arial,sans-serif;max-width:640px;margin:24px auto;padding:0 16px;color:#222}textarea,input,select{width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid #ccd;border-radius:8px}button{background:#1f7a4a;color:#fff;border:0;padding:12px 22px;border-radius:8px;font-size:16px}.box{background:#f3f8f5;padding:12px;border-radius:8px;white-space:pre-wrap}</style></head><body><h2 style=\"color:#1f5f3f\">' + title + '</h2>' + body + '</body></html>';\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\"/g,'&quot;');\n\nconst d = $('Prepare reply request').first().json;\nif (d.invalid) return [{ json: { html: page('Could not draft', '<p>The link or the vendor was not valid, or the message was empty.</p>') } }];\nconst r = $('Read draft').first().json;\nconst body = '<p><b>' + esc(r.name) + '</b> (@' + esc(r.u) + ') &middot; ' + esc(r.newStatus) + '</p><p style=\"color:#a15c00\"><b>Note:</b> ' + esc(r.note) + '</p>' +\n  '<p><b>Your reply</b></p><div class=\"box\" id=\"rep\">' + esc(r.reply) + '</div>' +\n  '<p><button onclick=\"navigator.clipboard.writeText(document.getElementById(\\'rep\\').innerText).then(()=>{this.innerText=\\'Copied\\'})\">Copy reply</button> &nbsp; <a href=\"https://ig.me/m/' + encodeURIComponent(r.u) + '\" style=\"font-size:16px\">Open their Instagram chat</a></p>' +\n  '<p style=\"color:#555;font-size:14px\"><b>In English:</b> ' + esc(r.reply_english) + '</p>' +\n  '<p style=\"font-size:13px;color:#888\">Saved in the CRM sheet. <a href=\"?k=<APPROVAL_KEY>&u=' + encodeURIComponent(r.u) + '\">Draft another reply</a></p>';\nreturn [{ json: { html: page('Reply ready', body) } }];"
+      }
+    },
+    {
+      "id": "r9",
+      "name": "Show draft",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        300
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Helper opened": {
+      "main": [
+        [
+          {
+            "node": "Read CRM (list)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM (list)": {
+      "main": [
+        [
+          {
+            "node": "Helper page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Helper page": {
+      "main": [
+        [
+          {
+            "node": "Show helper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply submitted": {
+      "main": [
+        [
+          {
+            "node": "Read CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM": {
+      "main": [
+        [
+          {
+            "node": "Prepare reply request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare reply request": {
+      "main": [
+        [
+          {
+            "node": "Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid?": {
+      "main": [
+        [
+          {
+            "node": "Claude Sonnet - draft reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Draft page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Sonnet - draft reply": {
+      "main": [
+        [
+          {
+            "node": "Read draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read draft": {
+      "main": [
+        [
+          {
+            "node": "Save to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to CRM": {
+      "main": [
+        [
+          {
+            "node": "Draft page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft page": {
+      "main": [
+        [
+          {
+            "node": "Show draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "executionOrder": "v1"
+  }
+}
