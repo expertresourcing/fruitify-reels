@@ -1,0 +1,1365 @@
+{
+  "name": "FRUiTIFY Meta - inbound messages and comments",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "fruitify-meta",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "g1",
+      "name": "Meta verify (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a21"
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = $input.first().json.query || {};\nconst ok = q['hub.mode'] === 'subscribe' && q['hub.verify_token'] === '<WEBHOOK_VERIFY_TOKEN>';\nreturn [{ json: { body: ok ? String(q['hub.challenge'] || '') : 'forbidden', code: ok ? 200 : 403 } }];"
+      },
+      "id": "g2",
+      "name": "Check code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.code }}"
+        }
+      },
+      "id": "g3",
+      "name": "Answer Meta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fruitify-meta",
+        "options": {}
+      },
+      "id": "e1",
+      "name": "Meta event (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        256
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a22"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turns Instagram/Facebook webhook events into simple rows: who, what they wrote, where.\nconst b = $input.first().json.body || {};\nconst out = [];\nfor (const entry of (b.entry || [])) {\n  for (const m of (entry.messaging || [])) {\n    if (m.message && !m.message.is_echo) out.push({ json: { kind: 'message', platform: b.object === 'page' ? 'Facebook' : 'Instagram', senderId: m.sender && m.sender.id, text: m.message.text || '(attachment)', time: m.timestamp } });\n  }\n  for (const c of (entry.changes || [])) {\n    if (c.field === 'comments' || c.field === 'feed') { const v = c.value || {}; out.push({ json: { kind: 'comment', platform: b.object === 'page' ? 'Facebook' : 'Instagram', senderId: v.from && v.from.id, username: v.from && v.from.username, commentId: v.id || v.comment_id, mediaId: v.media && v.media.id, text: v.text || v.message || '' } }); }\n  }\n}\nreturn out;"
+      },
+      "id": "e2",
+      "name": "Read event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.instagram.com/v26.0/me/media?fields=id,caption,media_type,media_product_type,timestamp,permalink&limit=20",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "options": {},
+        "method": "GET"
+      },
+      "id": "t1",
+      "name": "Instagram list our posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        900
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      }
+    },
+    {
+      "id": "e3",
+      "name": "Classify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        250
+      ],
+      "parameters": {
+        "jsCode": "const SELF = '17841467364040925';\nconst KEYWORD = /(d+[uo]+k+a*n|online\\s*shop|onlineshop|दुकान|दूकान|ਦੁਕਾਨ|দোকান|દુકાન|கடை|దుకాణం|ಅಂಗಡಿ|ഷോപ്പ്)/i;\nreturn $input.all().filter(i => i.json.senderId && i.json.senderId !== SELF).map(i => {\n  const e = i.json;\n  let action = 'ignore';\n  if (e.kind === 'comment' && e.commentId) action = 'keyword_comment';      // every comment on our posts\n  else if (e.kind === 'message' && e.platform === 'Instagram') action = 'message';\n  return { json: { ...e, action, isKeyword: KEYWORD.test(e.text || '') } };\n});"
+      }
+    },
+    {
+      "id": "e4",
+      "name": "What happened",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        660,
+        250
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "outputKey": "keyword_comment",
+              "renameOutput": true,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "keyword_comment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "message",
+              "renameOutput": true,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "message",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "k1",
+      "name": "Send DM to commenter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        -60
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v26.0/me/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: { comment_id: $('Read DM').item.json.commentId }, message: { text: $('Read DM').item.json.dm } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "k2",
+      "name": "Reply under comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        -60
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://graph.instagram.com/v26.0/' + $('Read DM').item.json.commentId + '/replies' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $('Read DM').item.json.publicReply }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "k3",
+      "name": "Log commenter in CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2640,
+        -60
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd') }}",
+            "Instagram": "={{ $('Read DM').item.json.username || ('ig:' + $('Read DM').item.json.senderId) }}",
+            "Profile link": "={{ $('Read DM').item.json.username ? 'https://www.instagram.com/' + $('Read DM').item.json.username + '/' : '' }}",
+            "Name": "={{ $('Read DM').item.json.profileName || $('Read DM').item.json.username || '' }}",
+            "Platform": "Instagram",
+            "Status": "={{ 'Inbound - commented: ' + $('Read DM').item.json.text + ' (auto DM sent in ' + $('Read DM').item.json.language + ')' }}",
+            "IG user id": "={{ $('Read DM').item.json.senderId }}",
+            "Message link": "={{ $('Read DM').item.json.username ? 'https://ig.me/m/' + $('Read DM').item.json.username : '' }}"
+          },
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Profile link",
+              "displayName": "Profile link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Vendor reply",
+              "displayName": "Vendor reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next reply draft",
+              "displayName": "Next reply draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IG user id",
+              "displayName": "IG user id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message link",
+              "displayName": "Message link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "m1",
+      "name": "Get sender profile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        400
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://graph.instagram.com/v26.0/' + $json.senderId + '?fields=username,name' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "options": {}
+      }
+    },
+    {
+      "id": "m2",
+      "name": "Read CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1100,
+        400
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "m3",
+      "name": "Prepare reply request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        400
+      ],
+      "parameters": {
+        "jsCode": "const SYSTEM = \"You are helping Ankur, founder of FRUiTIFY (fruitifyindia.com, run by Expert Resourcing Pvt. Ltd., Gurugram), reply to an Instagram fruit seller who answered his outreach. Ankur sends every message himself; you only draft.\\n\\nFACTS YOU MAY USE (never invent anything else):\\n- FRUiTIFY gives a fruit seller their own online fruit shop with its own link (like theirshop.fruitifyindia.com) to share on Instagram, WhatsApp and with regular customers.\\n- Customers open the link, pick fruits and order themselves - no long WhatsApp lists, no missed calls. Fruit is charged by exact weight. Orders come from the seller's own known shop.\\n- The seller's team gets screens for adding fruits and prices, stock, orders, delivery partners and simple business reports.\\n- Offer: 2 MONTHS FREE TRIAL, then a paid plan. The plan is agreed case by case with Ankur (a subscription or a revenue share) - never quote a price; never use the words \\\"bilkul free\\\", \\\"free forever\\\" or \\\"lifetime free\\\" (say \\\"2 mahine ka free trial\\\" or the same in their language); say Ankur will explain the plan on a call.\\n- Ankur's team helps with the setup. Do not promise how many minutes or days it takes.\\n- Contact: WhatsApp or call +91 96117 01149.\\n- Never name any competitor app or company. Never claim cold-chain, delivery times, guarantees, or anything not listed here. If the seller asks something you cannot answer from these facts, say Ankur will confirm it on a call.\\n\\nHOW TO REPLY:\\n- Reply in the seller's language written in that language's OWN native script - Hindi or Hinglish in Devanagari, Tamil in Tamil script, Gujarati in Gujarati script, and so on - even if they typed in English/Roman letters. NEVER reply in English and NEVER write an Indian language in Roman letters. Only FRUiTIFY, the phone number and the app names WhatsApp and Instagram may stay in English letters. Write EVERY other word in the language's own script, including English loan words (e.g. in Hindi: ऑनलाइन, ऑर्डर, लिंक, फ्री ट्रायल, पेड प्लान, डिलीवरी, सेटअप; never online, order, link, free trial in Roman letters); do the same in every other script. Warm, respectful, short (25-70 words), like a real shop owner chatting. At most one emoji.\\n- Answer their actual question or concern first. Then move them one step forward: usually ask for a good time for a short call, or their WhatsApp number, or invite them to WhatsApp +91 96117 01149.\\n- If they say not interested, thank them politely and close kindly without pushing.\\n- If the message is rude, spam or unrelated, draft a short polite close.\\n- Sign off: - Ankur\\n\\nOUTPUT ONLY these tags:\\n<reply></reply>\\n<reply_english></reply_english>\\n<intent></intent>   (one of: interested, question, wants_call, not_interested, other)\\n<note_for_ankur></note_for_ankur>   (one short line in English: what they want / what to do next)\";\nconst rows = $('Read CRM').all().map(r => r.json).filter(r => r.Instagram);\nreturn $('Classify').all().filter(i => i.json.action === 'message').map((i, n) => {\n  const e = i.json;\n  const prof = ($('Get sender profile').all()[n] || {}).json || {};\n  const username = prof.username || '';\n  const key = username || ('ig:' + e.senderId);\n  const row = rows.find(r => String(r['IG user id']) === String(e.senderId) || String(r.Instagram).toLowerCase() === key.toLowerCase()) || {};\n  const context = { shop: row.Name || prof.name || username, instagram: username, region: row.Region || '', language_we_used: row.Language || '', bio: row.Bio || '',\n    our_first_message: row['DM pitch'] || '(they contacted us first)', earlier_messages: row['Vendor reply'] || '', our_earlier_draft: row['Next reply draft'] || '' };\n  const now = $now.setZone('Asia/Kolkata').toFormat('d LLL HH:mm');\n  const log = (row['Vendor reply'] ? row['Vendor reply'] + '\\n---\\n' : '') + '[' + now + '] ' + e.text;\n  return { json: { senderId: e.senderId, username, key, name: row.Name || prof.name || username, text: e.text, log, isNew: !row.Instagram,\n    claudeRequest: { model: 'claude-sonnet-5-5', max_tokens: 3000, output_config: { effort: 'low' }, system: SYSTEM,\n      messages: [{ role: 'user', content: 'Seller details and conversation so far:\\n' + JSON.stringify(context, null, 2) + '\\n\\nTheir NEW message:\\n' + e.text }] } } };\n});"
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.claudeRequest) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "m4",
+      "name": "Claude Sonnet - draft reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        400
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "IXiBPjt3T9cyDo8I",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "id": "m5",
+      "name": "Read draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        400
+      ],
+      "parameters": {
+        "jsCode": "const src = $('Prepare reply request').all();\nconst statusByIntent = { not_interested: 'Not interested', wants_call: 'Replied - wants a call', interested: 'Replied - interested', question: 'Replied - has questions' };\nreturn $input.all().map((item, n) => {\n  const d = { ...src[n].json }; delete d.claudeRequest;\n  const raw = (item.json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  const t = k => { const m = raw.match(new RegExp('<' + k + '>([\\\\s\\\\S]*?)</' + k + '>')); return m ? m[1].trim() : ''; };\n  const intent = t('intent');\n  return { json: { ...d, reply: t('reply'), reply_english: t('reply_english'), intent, note: t('note_for_ankur'), newStatus: (statusByIntent[intent] || 'Replied - draft ready') + ' (DM waiting for your OK)',\n    sendLink: 'https://fruitifyindia.app.n8n.cloud/webhook/fruitify-send?k=<APPROVAL_KEY>&u=' + encodeURIComponent(d.key) } };\n});"
+      }
+    },
+    {
+      "id": "m6",
+      "name": "Save in CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1980,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd') }}",
+            "Instagram": "={{ $json.key }}",
+            "Profile link": "={{ $json.username ? 'https://www.instagram.com/' + $json.username + '/' : '' }}",
+            "Name": "={{ $json.name }}",
+            "Platform": "Instagram",
+            "Status": "={{ $json.newStatus }}",
+            "Vendor reply": "={{ $json.log }}",
+            "Next reply draft": "={{ $json.reply }}",
+            "IG user id": "={{ $json.senderId }}",
+            "Message link": "={{ $json.username ? 'https://ig.me/m/' + $json.username : '' }}"
+          },
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Profile link",
+              "displayName": "Profile link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Vendor reply",
+              "displayName": "Vendor reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next reply draft",
+              "displayName": "Next reply draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IG user id",
+              "displayName": "IG user id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message link",
+              "displayName": "Message link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "m7",
+      "name": "Email Ankur",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2200,
+        400
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NxBrjfizJOdieIgr",
+          "name": "Gmail account"
+        }
+      },
+      "parameters": {
+        "sendTo": "expertresourcing@gmail.com",
+        "subject": "={{ 'FRUiTIFY: ' + $('Read draft').item.json.name + ' messaged you - reply ready' }}",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px\"><h3 style=\"color:#1f5f3f\">' + $('Read draft').item.json.name + ' (@' + ($('Read draft').item.json.username || 'unknown') + ') wrote:</h3><div style=\"background:#f5f5f5;padding:10px;border-radius:8px\">' + $('Read draft').item.json.text + '</div><p style=\"color:#a15c00\"><b>Note:</b> ' + $('Read draft').item.json.note + '</p><p><b>Suggested reply:</b></p><div style=\"background:#f3f8f5;padding:10px;border-radius:8px\">' + $('Read draft').item.json.reply + '</div><p style=\"color:#666;font-size:13px\"><b>English:</b> ' + $('Read draft').item.json.reply_english + '</p><p><a href=\"' + $('Read draft').item.json.sendLink + '\" style=\"background:#1f7a4a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold\">Review and send</a></p><p style=\"color:#888;font-size:12px\">Reply within 24 hours of their message - Instagram allows replies only in that window.</p></div>' }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "webhookId": "346aa113-f980-4e23-bb63-415ac548aa24"
+    },
+    {
+      "id": "k0",
+      "name": "Get commenter profile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -260
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://graph.instagram.com/v26.0/' + $json.senderId + '?fields=name,username' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "options": {}
+      }
+    },
+    {
+      "id": "k0b",
+      "name": "Prepare DM request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -60
+      ],
+      "parameters": {
+        "jsCode": "const SYS = \"You write the FIRST private Instagram reply from FRUiTIFY to a person who commented on one of our posts. Ankur, the founder, has pre-approved this message type. The goal is a warm, relevant message that makes them want to reply. If mentions_shop_keyword is true they asked for their own online shop link - pitch it directly. Otherwise first respond naturally to what they actually commented (thank them, answer a simple question if it is answerable from the facts), then introduce FRUiTIFY in one or two lines for fruit sellers (if they look like a customer rather than a seller, mention they can order fresh fruit at fruitifyindia.com).\\n\\nFACTS (use only these): FRUiTIFY (fruitifyindia.com) gives a fruit seller their own online fruit shop link to share on Instagram and WhatsApp; customers pick fruits and order themselves, charged by exact weight; no missed calls, no long WhatsApp lists. Offer: 2 months free trial, then a paid plan (never say free forever / bilkul free, never quote a price). Our team helps with setup. Contact WhatsApp/call +91 96117 01149. Never name any competitor.\\n\\nLANGUAGE: Write in the commenter's own language AND its native script, judged from their comment text, display name and username (e.g. Tamil name or Tamil comment -> Tamil script; Gujarati -> Gujarati script; Bengali -> Bengali script; Marathi -> Devanagari Marathi; Punjabi -> Gurmukhi; Telugu/Kannada/Malayalam -> their scripts). If you cannot tell, use Hindi in Devanagari. NEVER write the message in English or in Roman-letter Hindi. Brand name FRUiTIFY, the phone number and the words free trial may stay as they are.\\n\\nDM: 45-75 words, warm and respectful, thank them, explain in one or two lines, mention 2 months free trial then paid plan, ask for their shop name and city, and END with an invitation to reply to receive a 1-minute video (e.g. Hindi: \\\"जवाब दीजिए, हम आपको 1 मिनट का वीडियो भेजेंगे।\\\"). Sign off as Ankur, FRUiTIFY in that script.\\nPUBLIC REPLY: under 8 words, same language and script, telling them to check their DM, with 🙏.\\n\\nSKIP: if the comment is abusive, a complaint, spam, a bot, or clearly a competitor, set skip to yes and leave dm empty.\\n\\nOutput ONLY these tags:\\n<skip>no</skip>\\n<language></language>\\n<dm></dm>\\n<public_reply></public_reply>\";\nreturn $('New commenters only').all().map((i, n) => {\n  const e = i.json; const p = ($('Get commenter profile').all()[n] || {}).json || {};\n  const info = { comment: e.text, mentions_shop_keyword: e.isKeyword, display_name: p.name || '', username: p.username || e.username || '' };\n  return { json: { ...e, profileName: p.name || '', claudeRequest: { model: 'claude-sonnet-5-5', max_tokens: 2000, output_config: { effort: 'low' }, system: SYS,\n    messages: [{ role: 'user', content: 'Commenter:\\n' + JSON.stringify(info, null, 2) }] } } };\n});"
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.claudeRequest) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "k0c",
+      "name": "Claude - write DM in their language",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -60
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "IXiBPjt3T9cyDo8I",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "id": "k0d",
+      "name": "Read DM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -60
+      ],
+      "parameters": {
+        "jsCode": "const src = $('Prepare DM request').all();\nconst FALLBACK_DM = 'नमस्ते! 🙏 FRUiTIFY में रुचि के लिए धन्यवाद। FRUiTIFY पर आपकी अपनी ऑनलाइन फल की दुकान का लिंक बनता है – ग्राहक खुद फल चुनकर ऑर्डर करते हैं। 2 महीने का free trial, उसके बाद paid plan। अपनी दुकान का नाम और शहर बताइए, या WhatsApp/कॉल कीजिए: +91 96117 01149। जवाब दीजिए, हम आपको 1 मिनट का वीडियो भेजेंगे। – अंकुर, FRUiTIFY';\nreturn $input.all().map((item, n) => {\n  const d = { ...src[n].json }; delete d.claudeRequest;\n  const raw = (item.json.content || []).filter(x => x.type === 'text').map(x => x.text).join('\\n');\n  const t = k => { const m = raw.match(new RegExp('<' + k + '>([\\\\s\\\\S]*?)</' + k + '>')); return m ? m[1].trim() : ''; };\n  return { json: { ...d, skip: /yes/i.test(t('skip')), language: t('language') || 'Hindi', dm: t('dm') || FALLBACK_DM, publicReply: t('public_reply') || 'DM भेजा है, कृपया देख लीजिए 🙏' } };\n});"
+      }
+    },
+    {
+      "id": "k_r",
+      "name": "Read CRM (comments)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        -260
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "k_n",
+      "name": "New commenters only",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -260
+      ],
+      "parameters": {
+        "jsCode": "const done = new Set($('Read CRM (comments)').all().map(r => String(r.json['IG user id'] || '')).filter(Boolean));\nconst seen = new Set();\nreturn $('Classify').all().filter(i => i.json.action === 'keyword_comment').filter(i => {\n  const id = String(i.json.senderId);\n  if (done.has(id) || seen.has(id)) return false;\n  seen.add(id); return true;\n}).map(i => ({ json: i.json }));"
+      }
+    },
+    {
+      "id": "k_f",
+      "name": "Skip rude or spam",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1980,
+        -60
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "q1",
+      "name": "Repeat commenters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -460
+      ],
+      "parameters": {
+        "jsCode": "const rows = $('Read CRM (comments)').all().map(r => r.json).filter(r => r['IG user id']);\nconst out = [];\nfor (const i of $('Classify').all().filter(i => i.json.action === 'keyword_comment')) {\n  const row = rows.find(r => String(r['IG user id']) === String(i.json.senderId));\n  if (row) out.push({ json: { ...i.json, row } });\n}\nreturn out;"
+      }
+    },
+    {
+      "id": "q2",
+      "name": "Prepare comment reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -460
+      ],
+      "parameters": {
+        "jsCode": "const SYSTEM = \"You are helping Ankur, founder of FRUiTIFY (fruitifyindia.com, run by Expert Resourcing Pvt. Ltd., Gurugram), reply to an Instagram fruit seller who answered his outreach. Ankur sends every message himself; you only draft.\\n\\nFACTS YOU MAY USE (never invent anything else):\\n- FRUiTIFY gives a fruit seller their own online fruit shop with its own link (like theirshop.fruitifyindia.com) to share on Instagram, WhatsApp and with regular customers.\\n- Customers open the link, pick fruits and order themselves - no long WhatsApp lists, no missed calls. Fruit is charged by exact weight. Orders come from the seller's own known shop.\\n- The seller's team gets screens for adding fruits and prices, stock, orders, delivery partners and simple business reports.\\n- Offer: 2 MONTHS FREE TRIAL, then a paid plan. The plan is agreed case by case with Ankur (a subscription or a revenue share) - never quote a price; never use the words \\\"bilkul free\\\", \\\"free forever\\\" or \\\"lifetime free\\\" (say \\\"2 mahine ka free trial\\\" or the same in their language); say Ankur will explain the plan on a call.\\n- Ankur's team helps with the setup. Do not promise how many minutes or days it takes.\\n- Contact: WhatsApp or call +91 96117 01149.\\n- Never name any competitor app or company. Never claim cold-chain, delivery times, guarantees, or anything not listed here. If the seller asks something you cannot answer from these facts, say Ankur will confirm it on a call.\\n\\nHOW TO REPLY:\\n- Reply in the seller's language written in that language's OWN native script - Hindi or Hinglish in Devanagari, Tamil in Tamil script, Gujarati in Gujarati script, and so on - even if they typed in English/Roman letters. NEVER reply in English and NEVER write an Indian language in Roman letters. Only FRUiTIFY, the phone number and the app names WhatsApp and Instagram may stay in English letters. Write EVERY other word in the language's own script, including English loan words (e.g. in Hindi: ऑनलाइन, ऑर्डर, लिंक, फ्री ट्रायल, पेड प्लान, डिलीवरी, सेटअप; never online, order, link, free trial in Roman letters); do the same in every other script. Warm, respectful, short (25-70 words), like a real shop owner chatting. At most one emoji.\\n- Answer their actual question or concern first. Then move them one step forward: usually ask for a good time for a short call, or their WhatsApp number, or invite them to WhatsApp +91 96117 01149.\\n- If they say not interested, thank them politely and close kindly without pushing.\\n- If the message is rude, spam or unrelated, draft a short polite close.\\n- Sign off: - Ankur\\n\\nOUTPUT ONLY these tags:\\n<reply></reply>\\n<reply_english></reply_english>\\n<intent></intent>   (one of: interested, question, wants_call, not_interested, other)\\n<note_for_ankur></note_for_ankur>   (one short line in English: what they want / what to do next)\";\nreturn $input.all().map(i => {\n  const e = i.json; const row = e.row;\n  const context = { shop: row.Name || row.Instagram, instagram: row.Instagram, region: row.Region || '', language_we_used: row.Language || '', bio: row.Bio || '',\n    our_first_message: row['DM pitch'] || '(they contacted us first)', earlier_messages: row['Vendor reply'] || '' };\n  const now = $now.setZone('Asia/Kolkata').toFormat('d LLL HH:mm');\n  return { json: { senderId: e.senderId, key: row.Instagram, name: row.Name || row.Instagram, username: e.username || '', text: e.text, commentId: e.commentId,\n    log: (row['Vendor reply'] ? row['Vendor reply'] + '\\n---\\n' : '') + '[' + now + '] COMMENT: ' + e.text,\n    claudeRequest: { model: 'claude-sonnet-5-5', max_tokens: 3000, output_config: { effort: 'low' }, system: SYSTEM,\n      messages: [{ role: 'user', content: 'Seller details and conversation so far:\\n' + JSON.stringify(context, null, 2) + '\\n\\nTheir NEW comment on our Instagram post (we will answer by private message):\\n' + e.text }] } } };\n});"
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.claudeRequest) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "q3",
+      "name": "Claude - draft comment reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        -460
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "IXiBPjt3T9cyDo8I",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "id": "q4",
+      "name": "Read comment draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        -460
+      ],
+      "parameters": {
+        "jsCode": "const src = $('Prepare comment reply').all();\nreturn $input.all().map((item, n) => {\n  const d = { ...src[n].json }; delete d.claudeRequest;\n  const raw = (item.json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  const t = k => { const m = raw.match(new RegExp('<' + k + '>([\\\\s\\\\S]*?)</' + k + '>')); return m ? m[1].trim() : ''; };\n  return { json: { ...d, reply: t('reply'), reply_english: t('reply_english'), note: t('note_for_ankur'),\n    sendLink: 'https://fruitifyindia.app.n8n.cloud/webhook/fruitify-send?k=<APPROVAL_KEY>&u=' + encodeURIComponent(d.key) + '&c=' + encodeURIComponent(d.commentId) } };\n});"
+      }
+    },
+    {
+      "id": "q5",
+      "name": "Save comment draft in CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1980,
+        -460
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Instagram": "={{ $json.key }}",
+            "Status": "Commented again - reply waiting for your OK",
+            "Vendor reply": "={{ $json.log }}",
+            "Next reply draft": "={{ $json.reply }}",
+            "IG user id": "={{ $json.senderId }}"
+          },
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Profile link",
+              "displayName": "Profile link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Vendor reply",
+              "displayName": "Vendor reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next reply draft",
+              "displayName": "Next reply draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IG user id",
+              "displayName": "IG user id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message link",
+              "displayName": "Message link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "q6",
+      "name": "Email Ankur (comment)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2200,
+        -460
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NxBrjfizJOdieIgr",
+          "name": "Gmail account"
+        }
+      },
+      "parameters": {
+        "sendTo": "expertresourcing@gmail.com",
+        "subject": "={{ 'FRUiTIFY: ' + $('Read comment draft').item.json.name + ' commented again - reply ready' }}",
+        "emailType": "html",
+        "message": "={{ '<div style=\"font-family:Arial,sans-serif;max-width:600px\"><h3 style=\"color:#1f5f3f\">' + $('Read comment draft').item.json.name + ' (@' + ($('Read comment draft').item.json.username || 'unknown') + ') commented:</h3><div style=\"background:#f5f5f5;padding:10px;border-radius:8px\">' + $('Read comment draft').item.json.text + '</div><p style=\"color:#a15c00\"><b>Note:</b> ' + $('Read comment draft').item.json.note + '</p><p><b>Suggested reply:</b></p><div style=\"background:#f3f8f5;padding:10px;border-radius:8px\">' + $('Read comment draft').item.json.reply + '</div><p style=\"color:#666;font-size:13px\"><b>English:</b> ' + $('Read comment draft').item.json.reply_english + '</p><p><a href=\"' + $('Read comment draft').item.json.sendLink + '\" style=\"background:#1f7a4a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold\">Review and send</a></p><p style=\"color:#888;font-size:12px\">This goes as a private message linked to their comment (allowed once per comment, within 7 days).</p></div>' }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "webhookId": "346aa113-f980-4e23-bb63-415ac548aa24"
+    }
+  ],
+  "connections": {
+    "Meta verify (GET)": {
+      "main": [
+        [
+          {
+            "node": "Check code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check code": {
+      "main": [
+        [
+          {
+            "node": "Answer Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta event (POST)": {
+      "main": [
+        [
+          {
+            "node": "Read event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read event": {
+      "main": [
+        [
+          {
+            "node": "Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify": {
+      "main": [
+        [
+          {
+            "node": "What happened",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What happened": {
+      "main": [
+        [
+          {
+            "node": "Read CRM (comments)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get sender profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send DM to commenter": {
+      "main": [
+        [
+          {
+            "node": "Reply under comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply under comment": {
+      "main": [
+        [
+          {
+            "node": "Log commenter in CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get sender profile": {
+      "main": [
+        [
+          {
+            "node": "Read CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM": {
+      "main": [
+        [
+          {
+            "node": "Prepare reply request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare reply request": {
+      "main": [
+        [
+          {
+            "node": "Claude Sonnet - draft reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Sonnet - draft reply": {
+      "main": [
+        [
+          {
+            "node": "Read draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read draft": {
+      "main": [
+        [
+          {
+            "node": "Save in CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save in CRM": {
+      "main": [
+        [
+          {
+            "node": "Email Ankur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get commenter profile": {
+      "main": [
+        [
+          {
+            "node": "Prepare DM request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare DM request": {
+      "main": [
+        [
+          {
+            "node": "Claude - write DM in their language",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude - write DM in their language": {
+      "main": [
+        [
+          {
+            "node": "Read DM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DM": {
+      "main": [
+        [
+          {
+            "node": "Skip rude or spam",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM (comments)": {
+      "main": [
+        [
+          {
+            "node": "New commenters only",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Repeat commenters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New commenters only": {
+      "main": [
+        [
+          {
+            "node": "Get commenter profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip rude or spam": {
+      "main": [
+        [
+          {
+            "node": "Send DM to commenter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repeat commenters": {
+      "main": [
+        [
+          {
+            "node": "Prepare comment reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare comment reply": {
+      "main": [
+        [
+          {
+            "node": "Claude - draft comment reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude - draft comment reply": {
+      "main": [
+        [
+          {
+            "node": "Read comment draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read comment draft": {
+      "main": [
+        [
+          {
+            "node": "Save comment draft in CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save comment draft in CRM": {
+      "main": [
+        [
+          {
+            "node": "Email Ankur (comment)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
