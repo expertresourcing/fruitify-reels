@@ -1,0 +1,763 @@
+{
+  "name": "FRUiTIFY Outreach - Approve or Skip",
+  "nodes": [
+    {
+      "id": "w1",
+      "name": "Link opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a01",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fruitify-review",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "w2",
+      "name": "Read CRM (for page)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "w3",
+      "name": "Confirmation page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body, color) => '<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY</title></head><body style=\"font-family:Arial,sans-serif;max-width:520px;margin:40px auto;padding:0 16px;color:#222\"><h2 style=\"color:' + color + '\">' + title + '</h2>' + body + '</body></html>';\n{ const qa = $('Link opened').first().json.query || {};\n  if (qa.all === '1') {\n    if (qa.k !== '<APPROVAL_KEY>') return [{ json: { html: page('Link not valid', '') } }];\n    const rowsA = $input.all().map(r => r.json);\n    const waitingA = rowsA.filter(r => String(r.Status).startsWith('New') && String(r['DM pitch'] || '').trim()).length;\n    return [{ json: { html: page('Approve all?', '<p><b>' + waitingA + '</b> vendors are waiting for your OK. Tapping the button approves the best-fit ones, up to today\\'s daily limit.</p><form method=\"POST\" onsubmit=\"var b=this.querySelector(\\'button\\');b.disabled=true;b.textContent=\\'Approving… please wait\\';\"><input type=\"hidden\" name=\"k\" value=\"' + qa.k + '\"><input type=\"hidden\" name=\"all\" value=\"1\"><button style=\"background:#1f7a4a;color:#fff;border:0;padding:14px 26px;border-radius:8px;font-size:17px\">Approve all (up to daily limit)</button></form>') } }];\n  } }\n\nconst q = $('Link opened').first().json.query || {};\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\"/g,'&quot;');\nlet html;\nif (q.k !== '<APPROVAL_KEY>') html = page('Link not valid', '', '#a00');\nelse {\n  const row = $('Read CRM (for page)').all().map(r => r.json).find(r => String(r.Instagram).toLowerCase() === String(q.u || '').toLowerCase());\n  if (!row) html = page('Vendor not found', '', '#a00');\n  else {\n    const skip = q.a === 'skip';\n    const body = '<p><b>' + esc(row.Name) + '</b> (@' + esc(row.Instagram) + ')<br>' + esc(row.Region) + ' - ' + esc(row.Language) + '</p><p>Current status: <b>' + esc(row.Status) + '</b></p><div style=\"background:#f3f8f5;padding:10px;border-radius:8px\">' + esc(row['DM pitch']) + '</div>' +\n      '<form method=\"POST\" style=\"margin-top:18px\"><input type=\"hidden\" name=\"u\" value=\"' + esc(row.Instagram) + '\"><input type=\"hidden\" name=\"a\" value=\"' + (skip ? 'skip' : 'approve') + '\"><input type=\"hidden\" name=\"k\" value=\"' + esc(q.k) + '\">' +\n      '<button style=\"background:' + (skip ? '#777' : '#1f7a4a') + ';color:#fff;border:0;padding:12px 24px;border-radius:8px;font-size:16px\">Confirm ' + (skip ? 'Skip' : 'Approve') + '</button></form>';\n    html = page((skip ? 'Skip' : 'Approve') + ' this vendor?', body, '#1f5f3f');\n  }\n}\nreturn [{ json: { html } }];"
+      }
+    },
+    {
+      "id": "w4",
+      "name": "Show page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "p1",
+      "name": "Confirmed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a02",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fruitify-review",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "p2",
+      "name": "Read CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        300
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p3",
+      "name": "Decide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// DAILY SEND LIMIT - change here (start 25-30, later up to 40)\nconst DAILY_LIMIT = 30;\nconst VOICES = { male: 'Charon', female: 'Kore' };\nconst PHONE_DIGITS = '919611701149';   // campaign number +91 96117 01149\nconst LANG = {\n  'hi-IN': { plus: 'प्लस', d: ['शून्य','एक','दो','तीन','चार','पाँच','छह','सात','आठ','नौ'], brand: 'फ्रूटिफाई' },\n  'mr-IN': { plus: 'प्लस', d: ['शून्य','एक','दोन','तीन','चार','पाच','सहा','सात','आठ','नऊ'], brand: 'फ्रूटिफाय' },\n  'gu-IN': { plus: 'પ્લસ', d: ['શૂન્ય','એક','બે','ત્રણ','ચાર','પાંચ','છ','સાત','આઠ','નવ'], brand: 'ફ્રૂટિફાય' },\n  'bn-IN': { plus: 'প্লাস', d: ['শূন্য','এক','দুই','তিন','চার','পাঁচ','ছয়','সাত','আট','নয়'], brand: 'ফ্রুটিফাই' },\n  'ta-IN': { plus: 'பிளஸ்', d: ['பூஜ்யம்','ஒன்று','இரண்டு','மூன்று','நான்கு','ஐந்து','ஆறு','ஏழு','எட்டு','ஒன்பது'], brand: 'ஃப்ரூட்டிஃபை' },\n  'te-IN': { plus: 'ప్లస్', d: ['సున్నా','ఒకటి','రెండు','మూడు','నాలుగు','ఐదు','ఆరు','ఏడు','ఎనిమిది','తొమ్మిది'], brand: 'ఫ్రూటిఫై' },\n  'kn-IN': { plus: 'ಪ್ಲಸ್', d: ['ಸೊನ್ನೆ','ಒಂದು','ಎರಡು','ಮೂರು','ನಾಲ್ಕು','ಐದು','ಆರು','ಏಳು','ಎಂಟು','ಒಂಬತ್ತು'], brand: 'ಫ್ರೂಟಿಫೈ' },\n  'ml-IN': { plus: 'പ്ലസ്', d: ['പൂജ്യം','ഒന്ന്','രണ്ട്','മൂന്ന്','നാല്','അഞ്ച്','ആറ്','ഏഴ്','എട്ട്','ഒമ്പത്'], brand: 'ഫ്രൂട്ടിഫൈ' },\n  'pa-IN': { plus: 'ਪਲੱਸ', d: ['ਸਿਫ਼ਰ','ਇੱਕ','ਦੋ','ਤਿੰਨ','ਚਾਰ','ਪੰਜ','ਛੇ','ਸੱਤ','ਅੱਠ','ਨੌਂ'], brand: 'ਫਰੂਟੀਫਾਈ' },\n  'en-IN': { plus: 'plus', d: ['zero','one','two','three','four','five','six','seven','eight','nine'], brand: 'Fruitify' }\n};\nconst say = (L, s) => s.split('').map(x => L.d[+x]).join(' ');\n\nconst LANG_BY_NAME = { tamil:'ta-IN', gujarati:'gu-IN', marathi:'mr-IN', bengali:'bn-IN', telugu:'te-IN', kannada:'kn-IN', malayalam:'ml-IN', punjabi:'pa-IN', english:'en-IN' };\nconst b = $('Confirmed').first().json.body || {};\nconst rows = $('Read CRM').all().map(r => r.json).filter(r => r.Instagram);\nconst today = $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd');\nif (b.k !== '<APPROVAL_KEY>') return [{ json: { action: 'invalid' } }];\nif (b.k === '<APPROVAL_KEY>' && b.all === '1') {\n  const doneToday = rows.filter(r => String(r['Approved on']).startsWith(today)).length;\n  const room = Math.max(0, DAILY_LIMIT - doneToday);\n  const pend = rows.filter(r => String(r.Status).startsWith('New') && String(r['DM pitch'] || '').trim())\n    .sort((x, y) => String(y.Date).localeCompare(String(x.Date)) || ((+y['Fit score'] || 0) - (+x['Fit score'] || 0)));\n  const pick = pend.slice(0, room);\n  return [{ json: { action: 'bulk', count: pick.length, waiting: pend.length, already: doneToday, limit: DAILY_LIMIT, items: pick.map((r, i) => build(r, doneToday + i + 1).json) } }];\n}\nconst row = rows.find(r => String(r.Instagram).toLowerCase() === String(b.u || '').toLowerCase());\nif (!row) return [{ json: { action: 'notfound' } }];\nif (b.a === 'skip') return [{ json: { action: 'skip', u: row.Instagram, name: row.Name } }];\nif (String(row.Status).startsWith('Approved') || String(row.Status).startsWith('Sent')) return [{ json: { action: 'already', u: row.Instagram, name: row.Name, status: row.Status } }];\nconst approvedToday = rows.filter(r => String(r['Approved on']).startsWith(today)).length;\nif (approvedToday >= DAILY_LIMIT) return [{ json: { action: 'limit', limit: DAILY_LIMIT, name: row.Name } }];\nreturn [build(row, approvedToday + 1)];\n\nfunction build(row, __n) {\nlet lang = row['Voice language'];\nif (!LANG[lang]) { const k = Object.keys(LANG_BY_NAME).find(n => String(row.Language).toLowerCase().includes(n)); lang = k ? LANG_BY_NAME[k] : 'hi-IN'; }\nconst L = LANG[lang];\nconst gender = /female/i.test(row['Voice speaker'] || '') ? 'female' : 'male';\nconst phone = L.plus + ' ' + say(L, PHONE_DIGITS.slice(0, 2)) + ', ' + say(L, PHONE_DIGITS.slice(2, 7)) + ', ' + say(L, PHONE_DIGITS.slice(7));\nconst text = String(row['Voice script'] || '').split('{{PHONE}}').join(phone).split('{{BRAND}}').join(L.brand)\n  .replace(/FRUiTIFY|Fruitify|FRUITIFY/g, L.brand).replace(/\\+?\\s?91[\\s-]?96117[\\s-]?01149/g, phone);\nreturn { json: { action: 'approve', u: row.Instagram, name: row.Name, platform: row.Platform || 'Instagram', pitch: row['DM pitch'], msgLink: row['Message link'] || ('https://ig.me/m/' + row.Instagram), approvedNo: __n, limit: DAILY_LIMIT, today,\n  fileName: today + '_' + row.Instagram + '.mp3',\n  ttsRequest: { input: { text }, voice: { languageCode: lang, name: lang + '-Chirp3-HD-' + VOICES[gender] }, audioConfig: { audioEncoding: 'MP3', speakingRate: 1.05 } } } };\n}\n"
+      }
+    },
+    {
+      "id": "p4",
+      "name": "Which action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "approve",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "approve"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "skip",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "skip"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "bulk",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "bulk"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "other"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://texttospeech.googleapis.com/v1/text:synthesize",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.ttsRequest) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "p5",
+      "name": "Google voice - make audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        200
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "ISksBKF9ajkWrgji",
+          "name": "Query Auth account 2"
+        }
+      }
+    },
+    {
+      "id": "p6",
+      "name": "Make audio file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const src = $('Decide').first().json.action === 'bulk' ? $('Bulk items').all().map(i => i.json) : [$('Decide').first().json];\nreturn $input.all().map((it, i) => { const d = src[i] || src[0]; const a = it.json.audioContent;\n  if (!a) return { json: { ...d, voiceError: true } };\n  return { json: d, binary: { data: { data: a, mimeType: 'audio/mpeg', fileName: d.fileName, fileExtension: 'mp3' } } }; });"
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "id": "p7",
+      "name": "Save voice note to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        200
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "FhZpnHwrYRFMYmZa",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "id": "p8",
+      "name": "Mark approved",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1540,
+        200
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Instagram": "={{ $('Make audio file').item.json.u }}",
+            "Status": "Approved - in send queue",
+            "Voice note link": "={{ $json.webViewLink }}",
+            "Approved on": "={{ $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd HH:mm') }}"
+          },
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "schema": [
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Voice note link",
+              "displayName": "Voice note link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved on",
+              "displayName": "Approved on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p9",
+      "name": "Mark skipped",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Instagram": "={{ $('Decide').first().json.u }}",
+            "Status": "Skipped"
+          },
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "schema": [
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Voice note link",
+              "displayName": "Voice note link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved on",
+              "displayName": "Approved on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p10",
+      "name": "Result page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body, color) => '<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY</title></head><body style=\"font-family:Arial,sans-serif;max-width:520px;margin:40px auto;padding:0 16px;color:#222\"><h2 style=\"color:' + color + '\">' + title + '</h2>' + body + '</body></html>';\nconst d = $('Decide').first().json;\nif (d.action === 'bulk') return [];\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;');\nconst M = {\n  approve: ['Approved', '#1f7a4a', esc(d.name) + ' is in today\\'s send queue (' + d.approvedNo + ' of ' + d.limit + ' today). The voice note is ready in your Google Drive.'],\n  skip: ['Skipped', '#555', esc(d.name) + ' will not be contacted.'],\n  already: ['Already done', '#555', esc(d.name) + ' is already: ' + esc(d.status) + '.'],\n  limit: ['Daily limit reached', '#a15c00', 'Today\\'s limit of ' + d.limit + ' approvals is reached. ' + esc(d.name) + ' stays in the list for another day.'],\n  invalid: ['Link not valid', '#a00', ''], notfound: ['Vendor not found', '#a00', '']\n}[d.action] || ['Done', '#555', ''];\nlet extra = '';\nif (d.action === 'approve' && d.platform === 'Facebook') {\n  extra = '<p><b>Facebook vendor - please send this one yourself:</b></p><div id=\"p\" style=\"background:#f3f8f5;padding:10px;border-radius:8px;white-space:pre-wrap\">' + esc(d.pitch) + '</div>' +\n    '<p style=\"margin-top:12px\"><button onclick=\"navigator.clipboard.writeText(document.getElementById(\\'p\\').innerText).then(()=>{this.innerText=\\'Copied\\'})\" style=\"background:#1f7a4a;color:#fff;border:0;padding:12px 20px;border-radius:8px;font-size:16px\">Copy pitch</button> &nbsp; <a href=\"' + esc(d.msgLink) + '\" style=\"font-size:16px\">Open Messenger</a></p>';\n}\nreturn [{ json: { html: page(M[0], '<p>' + M[2] + '</p>' + extra + '<p style=\"color:#888;font-size:13px\">You can close this page and go back to the email.</p>', M[1]) } }];"
+      }
+    },
+    {
+      "id": "p11",
+      "name": "Show result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1980,
+        300
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "bulk-page",
+      "name": "Bulk page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        700
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body, color) => '<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY</title></head><body style=\"font-family:Arial,sans-serif;max-width:520px;margin:40px auto;padding:0 16px;color:#222\"><h2 style=\"color:' + color + '\">' + title + '</h2>' + body + '</body></html>';\nconst d = $json;\nconst fb = d.items.filter(x => x.platform === 'Facebook').length;\nreturn [{ json: { html: page('Approved ✓', '<p><b>' + d.count + '</b> vendors approved' + (d.already ? ' (plus ' + d.already + ' approved earlier today)' : '') + '. Daily limit: ' + d.limit + '.</p>' + (d.waiting > d.count ? '<p>' + (d.waiting - d.count) + ' more stay in the list for the coming days.</p>' : '') + '<p>Their voice notes are being made now (about 2 minutes). Claude will prepare the Instagram chats for you to press Send.</p>' + (fb ? '<p>' + fb + ' of them are Facebook pages - their pitch is in the CRM sheet to send yourself.</p>' : '') + '<p style=\"color:#888\">You can close this page.</p>') } }];"
+      }
+    },
+    {
+      "id": "bulk-show",
+      "name": "Show bulk result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        700
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "bulk-items",
+      "name": "Bulk items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        700
+      ],
+      "parameters": {
+        "jsCode": "return $('Bulk page').first().json ? $('Decide').first().json.items.map(x => ({ json: x })) : [];"
+      }
+    }
+  ],
+  "connections": {
+    "Link opened": {
+      "main": [
+        [
+          {
+            "node": "Read CRM (for page)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM (for page)": {
+      "main": [
+        [
+          {
+            "node": "Confirmation page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmation page": {
+      "main": [
+        [
+          {
+            "node": "Show page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmed": {
+      "main": [
+        [
+          {
+            "node": "Read CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM": {
+      "main": [
+        [
+          {
+            "node": "Decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide": {
+      "main": [
+        [
+          {
+            "node": "Which action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which action": {
+      "main": [
+        [
+          {
+            "node": "Google voice - make audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark skipped",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bulk page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Result page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google voice - make audio": {
+      "main": [
+        [
+          {
+            "node": "Make audio file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make audio file": {
+      "main": [
+        [
+          {
+            "node": "Save voice note to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save voice note to Drive": {
+      "main": [
+        [
+          {
+            "node": "Mark approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark approved": {
+      "main": [
+        [
+          {
+            "node": "Result page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark skipped": {
+      "main": [
+        [
+          {
+            "node": "Result page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result page": {
+      "main": [
+        [
+          {
+            "node": "Show result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bulk page": {
+      "main": [
+        [
+          {
+            "node": "Show bulk result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Show bulk result": {
+      "main": [
+        [
+          {
+            "node": "Bulk items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bulk items": {
+      "main": [
+        [
+          {
+            "node": "Google voice - make audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "executionOrder": "v1"
+  }
+}
