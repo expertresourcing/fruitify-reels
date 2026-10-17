@@ -1,0 +1,578 @@
+{
+  "name": "FRUiTIFY Meta - review and send reply",
+  "nodes": [
+    {
+      "id": "s1",
+      "name": "Review opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a31",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fruitify-send",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "s2",
+      "name": "Read CRM (page)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "s3",
+      "name": "Review page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body) => '<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY</title><style>body{font-family:Arial,sans-serif;max-width:620px;margin:24px auto;padding:0 16px;color:#222}textarea{width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid #ccd;border-radius:8px}button{background:#1f7a4a;color:#fff;border:0;padding:12px 22px;border-radius:8px;font-size:16px}.box{background:#f5f5f5;padding:10px;border-radius:8px;white-space:pre-wrap}</style></head><body><h2 style=\"color:#1f5f3f\">' + title + '</h2>' + body + '</body></html>';\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\"/g,'&quot;');\n\nconst q = $('Review opened').first().json.query || {};\nif (q.k !== '<APPROVAL_KEY>') return [{ json: { html: page('Link not valid', '') } }];\nconst row = $('Read CRM (page)').all().map(r => r.json).find(r => String(r.Instagram).toLowerCase() === String(q.u || '').toLowerCase());\nif (!row || !row['IG user id']) return [{ json: { html: page('Not found', '<p>This person has no Instagram chat with us yet.</p>') } }];\nif (!String(row['Next reply draft'] || '').trim()) return [{ json: { html: page('Already sent ✓', '<p>This reply to <b>' + esc(row.Name || row.Instagram) + '</b> has already been sent. Nothing more to do.</p>') } }];\nconst last = String(row['Vendor reply'] || '').split('\\n---\\n').pop();\nconst body = '<p><b>' + esc(row.Name || row.Instagram) + '</b> (@' + esc(row.Instagram) + ')</p><p>They wrote:</p><div class=\"box\">' + esc(last) + '</div>' +\n  '<form method=\"POST\" style=\"margin-top:16px\" onsubmit=\"var b=this.querySelector(\\'button\\');b.disabled=true;b.textContent=\\'Sending… please wait\\';\"><input type=\"hidden\" name=\"k\" value=\"' + esc(q.k) + '\"><input type=\"hidden\" name=\"u\" value=\"' + esc(row.Instagram) + '\"><input type=\"hidden\" name=\"c\" value=\"' + esc(q.c || '') + '\">' +\n  '<p><b>Your reply</b> (you can change any word)</p><textarea name=\"m\" rows=\"7\">' + esc(row['Next reply draft']) + '</textarea>' +\n  '<p><label style=\"font-size:16px\"><input type=\"checkbox\" name=\"v\" value=\"1\" checked style=\"width:20px;height:20px;vertical-align:middle\"> Also send our 1-minute FRUiTIFY video</label></p><p><button>Send on Instagram</button></p></form><p style=\"color:#888;font-size:13px\">Sent from fruitify.india.byanay. Instagram allows replies within 24 hours of their last message.</p>';\nreturn [{ json: { html: page('Review and send', body) } }];"
+      }
+    },
+    {
+      "id": "s4",
+      "name": "Show review",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "p1",
+      "name": "Send confirmed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "7c1f3a52-0b7e-4d61-9a8e-2f3c5d6e7a32",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fruitify-send",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "p2",
+      "name": "Read CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        300
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p3",
+      "name": "Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const b = $('Send confirmed').first().json.body || {};\nconst row = $('Read CRM').all().map(r => r.json).find(r => String(r.Instagram).toLowerCase() === String(b.u || '').toLowerCase());\nconst ok = b.k === '<APPROVAL_KEY>' && row && row['IG user id'] && String(b.m || '').trim();\nconst draft = row ? String(row['Next reply draft'] || '').trim() : '';\nconst log = row ? String(row['Vendor reply'] || '') : '';\nlet commentId = String(b.c || '');\nif (b.via === 'chat' || (commentId && log.includes('(c:' + commentId + ')'))) commentId = '';\nreturn [{ json: { ok: !!ok && !!draft, already: !!ok && !draft, u: row ? row.Instagram : '', name: row ? (row.Name || row.Instagram) : '', igid: row ? String(row['IG user id']) : '', text: String(b.m || '').trim(), commentId: commentId, lang: row ? String(row.Language || '') : '', withVideo: String(b.v || '') === '1', log: row ? row['Vendor reply'] : '' } }];"
+      }
+    },
+    {
+      "id": "p4",
+      "name": "OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p5",
+      "name": "Send on Instagram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        200
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v26.0/me/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: $json.commentId ? { comment_id: $json.commentId } : { id: $json.igid }, message: { text: $json.text } }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "p6",
+      "name": "Update CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        200
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XZlgYis8bmHbJZZ8",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "Instagram"
+          ],
+          "value": {
+            "Instagram": "={{ $('Check').item.json.u }}",
+            "Status": "={{ $('Merge send result').item.json.message_id ? 'Replied by us' : 'Reply FAILED - send manually' }}",
+            "Vendor reply": "={{ $('Check').item.json.log + ($('Merge send result').item.json.message_id ? '\\n---\\n[' + $now.setZone('Asia/Kolkata').toFormat('d LLL HH:mm') + '] WE SENT' + ($('Check').item.json.commentId ? ' (c:' + $('Check').item.json.commentId + ')' : '') + ': ' + $('Check').item.json.text : '') }}",
+            "Next reply draft": "={{ $('Merge send result').item.json.message_id ? '' : $('Check').item.json.text }}",
+            "Sent on": "={{ $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd HH:mm') }}"
+          },
+          "schema": [
+            {
+              "id": "Instagram",
+              "displayName": "Instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Vendor reply",
+              "displayName": "Vendor reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next reply draft",
+              "displayName": "Next reply draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sent on",
+              "displayName": "Sent on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p7",
+      "name": "Result page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const page = (title, body) => '<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>FRUiTIFY</title><style>body{font-family:Arial,sans-serif;max-width:620px;margin:24px auto;padding:0 16px;color:#222}textarea{width:100%;box-sizing:border-box;font-size:16px;padding:10px;border:1px solid #ccd;border-radius:8px}button{background:#1f7a4a;color:#fff;border:0;padding:12px 22px;border-radius:8px;font-size:16px}.box{background:#f5f5f5;padding:10px;border-radius:8px;white-space:pre-wrap}</style></head><body><h2 style=\"color:#1f5f3f\">' + title + '</h2>' + body + '</body></html>';\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\"/g,'&quot;');\n\nconst c = $('Check').first().json;\nif (c.already) return [{ json: { html: page('Already sent ✓', '<p>This reply was already sent earlier, so it was NOT sent again.</p>') } }];\nif (!c.ok) return [{ json: { html: page('Could not send', '<p>The link was not valid or the message was empty.</p>') } }];\nconst s = $('Merge send result').first().json;\nif (s.message_id) return [{ json: { html: page('Sent ✓', '<p>Your reply was sent to <b>' + esc(c.name) + '</b> on Instagram' + (c.withVideo ? ', together with our FRUiTIFY video' : '') + '.</p><p style=\"color:#888;font-size:13px\">You can close this page.</p>') } }];\nconst b0 = $('Send confirmed').first().json.body || {};\nconst err = (s.error && (s.error.message || JSON.stringify(s.error))) || JSON.stringify(s).slice(0, 300);\nreturn [{ json: { html: page('Not confirmed', '<p>Instagram did not confirm this message (' + esc(err).slice(0, 160) + ').</p><p><b>Instagram sometimes delivers it anyway.</b> First open the chat with <b>' + esc(c.name) + '</b> in the Instagram app and check.</p><p>Only if it is NOT there, tap the button below to send it into the chat once.</p><form method=\"POST\" onsubmit=\"var x=this.querySelector(\\'button\\');x.disabled=true;x.textContent=\\'Sending…\\';\"><input type=\"hidden\" name=\"k\" value=\"' + esc(b0.k) + '\"><input type=\"hidden\" name=\"u\" value=\"' + esc(c.u) + '\"><input type=\"hidden\" name=\"via\" value=\"chat\"><input type=\"hidden\" name=\"v\" value=\"' + (c.withVideo ? '1' : '') + '\"><textarea name=\"m\" rows=\"6\">' + esc(c.text) + '</textarea><p><button>Send into chat</button></p></form>') } }];"
+      }
+    },
+    {
+      "id": "p8",
+      "name": "Show result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "p5v",
+      "name": "Send video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        60
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "x2OmuUPi4Lj401h7",
+          "name": "Query Auth account 3"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v26.0/me/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => { const L = String($('Check').item.json.lang || '').toLowerCase(); const M = { tamil: 'ta01', telugu: 'te01', bengali: 'bn01', bangla: 'bn01', marathi: 'mr01', gujarati: 'gu01', punjabi: 'pa01', kannada: 'kn01', malayalam: 'ml01' }; const k = Object.keys(M).find(x => L.includes(x)); const att = k ? { type: 'video', payload: { url: 'https://raw.githubusercontent.com/expertresourcing/fruitify-reels/main/reels/' + M[k] + '.mp4' } } : { type: 'MEDIA_SHARE', payload: { id: '17863263225695258' } }; return JSON.stringify({ recipient: { id: $('Check').item.json.igid }, message: { attachment: att } }); })() }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "p5f",
+      "name": "Video wanted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1000,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $('Check').item.json.withVideo && !!$('Merge send result').item.json.message_id }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "p5m",
+      "name": "Merge send result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const r = $('Send on Instagram').first().json;\nreturn [{ json: { message_id: r.message_id || '', error: r.message_id ? null : (r.error || r) } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Review opened": {
+      "main": [
+        [
+          {
+            "node": "Read CRM (page)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM (page)": {
+      "main": [
+        [
+          {
+            "node": "Review page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review page": {
+      "main": [
+        [
+          {
+            "node": "Show review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send confirmed": {
+      "main": [
+        [
+          {
+            "node": "Read CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CRM": {
+      "main": [
+        [
+          {
+            "node": "Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check": {
+      "main": [
+        [
+          {
+            "node": "OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OK?": {
+      "main": [
+        [
+          {
+            "node": "Send on Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Result page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send on Instagram": {
+      "main": [
+        [
+          {
+            "node": "Merge send result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update CRM": {
+      "main": [
+        [
+          {
+            "node": "Result page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result page": {
+      "main": [
+        [
+          {
+            "node": "Show result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video wanted?": {
+      "main": [
+        [
+          {
+            "node": "Send video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send video": {
+      "main": [
+        [
+          {
+            "node": "Update CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge send result": {
+      "main": [
+        [
+          {
+            "node": "Video wanted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "executionOrder": "v1"
+  }
+}
