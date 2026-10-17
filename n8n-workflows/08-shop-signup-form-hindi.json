@@ -1,0 +1,419 @@
+{
+ "name": "FRUiTIFY - Shop sign-up form (Hindi)",
+ "nodes": [
+  {
+   "id": "7814c19f-317a-4509-a20e-53d1dd2c786f",
+   "name": "Hindi sign-up form",
+   "type": "n8n-nodes-base.formTrigger",
+   "typeVersion": 2.2,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "path": "dukaan-judiye",
+    "formTitle": "FRUiTIFY से अपनी दुकान जोड़िए 🍎",
+    "formDescription": "अपनी फल की दुकान को ऑनलाइन लाइए। यह फ़ॉर्म 2 मिनट में भरें - हमारी टीम 24 घंटे में आपको WhatsApp पर आपकी अपनी दुकान का लिंक और लॉगिन भेजेगी।\n2 महीने का फ्री ट्रायल, फिर पेड प्लान। मदद के लिए WhatsApp/कॉल: +91 96117 01149",
+    "formFields": {
+     "values": [
+      {
+       "fieldLabel": "दुकान / बिज़नेस का नाम",
+       "fieldType": "text",
+       "requiredField": true,
+       "placeholder": "जैसे: अंकित फ्रूट्स"
+      },
+      {
+       "fieldLabel": "मालिक का पूरा नाम",
+       "fieldType": "text",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "मोबाइल नंबर (जिस पर WhatsApp चलता है)",
+       "fieldType": "text",
+       "requiredField": true,
+       "placeholder": "10 अंकों का नंबर"
+      },
+      {
+       "fieldLabel": "शहर",
+       "fieldType": "text",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "दुकान का पूरा पता",
+       "fieldType": "textarea",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "आप FRUiTIFY किस पर चलाएँगे?",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "सिर्फ़ मोबाइल फ़ोन पर"
+         },
+         {
+          "option": "मोबाइल और कंप्यूटर दोनों पर"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "आपकी कितनी दुकानें हैं?",
+       "fieldType": "number",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "आपकी वेबसाइट का पसंदीदा नाम (अंग्रेज़ी अक्षरों में, बिना स्पेस - जैसे ankitfruits)",
+       "fieldType": "text",
+       "requiredField": false,
+       "placeholder": "ankitfruits"
+      },
+      {
+       "fieldLabel": "Instagram / Facebook पेज का नाम (अगर है)",
+       "fieldType": "text",
+       "requiredField": false
+      },
+      {
+       "fieldLabel": "ईमेल (अगर है)",
+       "fieldType": "email",
+       "requiredField": false
+      },
+      {
+       "fieldLabel": "आप कौन-कौन से फल बेचते हैं?",
+       "fieldType": "textarea",
+       "requiredField": false
+      }
+     ]
+    },
+    "responseMode": "onReceived",
+    "options": {
+     "appendAttribution": false,
+     "buttonLabel": "फ़ॉर्म भेजें",
+     "respondWithOptions": {
+      "values": {
+       "formSubmittedText": "धन्यवाद! 🙏 आपकी जानकारी हमें मिल गई है। 24 घंटे के अंदर हम आपको WhatsApp पर आपकी अपनी FRUiTIFY दुकान का लिंक और लॉगिन भेजेंगे। - अंकुर, FRUiTIFY"
+      }
+     }
+    }
+   },
+   "webhookId": "43fabace-8984-466a-8466-a0fbc040927d"
+  },
+  {
+   "id": "df842852-931a-4ff7-a4f1-69afdf6182ab",
+   "name": "Read onboarding sheet",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    220,
+    0
+   ],
+   "parameters": {
+    "documentId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Onboarding"
+    },
+    "options": {}
+   },
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "XZlgYis8bmHbJZZ8",
+     "name": "Google Sheets account"
+    }
+   },
+   "alwaysOutputData": true
+  },
+  {
+   "id": "eae265db-d6f0-4a7a-a57a-a4ed801833cd",
+   "name": "Prepare row and email",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    440,
+    0
+   ],
+   "parameters": {
+    "jsCode": "\nconst f = $('Hindi sign-up form').first().json;\nconst g = k => String(Object.entries(f).find(([key]) => key.startsWith(k))?.[1] ?? '').trim();\nconst shop = g('दुकान / बिज़नेस'), owner = g('मालिक'), phoneRaw = g('मोबाइल नंबर'), city = g('शहर');\nconst phone = phoneRaw.replace(/\\D/g, '').replace(/^(91|0)(?=\\d{10}$)/, '');\nconst wanted = g('आपकी वेबसाइट').toLowerCase().replace(/[^a-z0-9]/g, '');\nconst fromShop = shop.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');\nlet base = (wanted || fromShop || ('shop' + phone.slice(-4))).slice(0, 20);\nconst used = new Set($input.all().map(r => String(r.json['Business ID (suggested)'] || '').toLowerCase()));\nlet id = base, n = 2; while (used.has(id)) id = base + n++;\nconst row = { 'Submitted on': $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd HH:mm'), 'Business ID (suggested)': id, 'Shop name': shop, 'Owner name': owner,\n  'Mobile (WhatsApp)': phone, 'City': city, 'Shop address': g('दुकान का पूरा पता'), 'Uses': g('आप FRUiTIFY किस पर'), 'Number of shops': g('आपकी कितनी दुकानें'),\n  'Preferred web name': wanted, 'Instagram / Facebook': g('Instagram'), 'Email': g('ईमेल'), 'Fruits sold': g('आप कौन-कौन'), 'Status': 'New - waiting for onboarding', 'Onboarded on': '', 'Notes': '' };\nconst phoneOnly = /सिर्फ़ मोबाइल/.test(row['Uses']);\nconst welcome = 'नमस्ते ' + owner + ' जी 🙏\\nFRUiTIFY में आपका स्वागत है! आपकी दुकान \"' + shop + '\" ऑनलाइन तैयार है।\\n\\n🌐 आपकी दुकान का लिंक: https://' + id + '.fruitifyindia.com\\n🔑 Business ID: ' + id + '\\n🔢 आपका 7 अंकों का PIN: (यहाँ PIN लिखें)\\n\\n' +\n  (phoneOnly ? 'अपने मोबाइल में Chrome खोलकर ऊपर वाला लिंक खोलें और \"Business\" बटन से लॉगिन करें। चाहें तो Chrome मेनू से \"होम स्क्रीन पर जोड़ें\" दबाएँ - फिर यह ऐप की तरह खुलेगा।' : 'मोबाइल या कंप्यूटर पर ऊपर वाला लिंक खोलें और \"Business\" बटन से लॉगिन करें।') +\n  '\\nपहली बार लॉगिन पर अपनी दुकान की बाकी जानकारी (GST, फ़र्म का नाम आदि) खुद भरें।\\n2 महीने का फ्री ट्रायल शुरू हो गया है। कोई भी मदद चाहिए तो इसी नंबर पर मैसेज करें।\\n- अंकुर, FRUiTIFY';\nconst wa = 'https://wa.me/91' + phone + '?text=' + encodeURIComponent(welcome);\nconst esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;');\nconst html = '<div style=\"font-family:Arial,sans-serif;max-width:640px\"><h2 style=\"color:#1f5f3f\">New shop wants to join: ' + esc(shop) + '</h2>' +\n  '<table cellpadding=\"6\" style=\"border-collapse:collapse;font-size:15px\">' + Object.entries(row).filter(([k]) => !['Status','Onboarded on','Notes'].includes(k)).map(([k, v]) => '<tr><td style=\"color:#666\">' + esc(k) + '</td><td><b>' + esc(v) + '</b></td></tr>').join('') + '</table>' +\n  '<h3>To onboard (Platform Owner console)</h3><ol><li>Onboard a New Business Chain: business name <b>' + esc(shop) + '</b>, Business Owner <b>' + esc(owner) + '</b>, phone <b>' + esc(phone) + '</b>, Business ID <b>' + esc(id) + '</b>.</li><li>Note the 7-digit PIN you set.</li><li>Tap the button below - WhatsApp opens with the Hindi welcome message ready. Type the PIN where it says \"(यहाँ PIN लिखें)\" and send.</li><li>In the CRM sheet, Onboarding tab, set Status to \"Onboarded\".</li></ol>' +\n  '<p><a href=\"' + wa + '\" style=\"background:#25D366;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold\">Open WhatsApp with welcome message</a></p>' +\n  (phoneOnly ? '<p style=\"color:#a15c00\"><b>Note:</b> this owner will use only a mobile phone.</p>' : '') + '</div>';\nreturn [{ json: { row, subject: 'New shop sign-up: ' + shop + ' (' + city + ')', html } }];\n"
+   }
+  },
+  {
+   "id": "4a4e5e90-8553-4ace-b9fa-5c6dd2c48310",
+   "name": "Save in Onboarding tab",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    660,
+    0
+   ],
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw"
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Onboarding"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Submitted on": "={{ $('Prepare row and email').first().json.row['Submitted on'] }}",
+      "Business ID (suggested)": "={{ $('Prepare row and email').first().json.row['Business ID (suggested)'] }}",
+      "Shop name": "={{ $('Prepare row and email').first().json.row['Shop name'] }}",
+      "Owner name": "={{ $('Prepare row and email').first().json.row['Owner name'] }}",
+      "Mobile (WhatsApp)": "={{ $('Prepare row and email').first().json.row['Mobile (WhatsApp)'] }}",
+      "City": "={{ $('Prepare row and email').first().json.row['City'] }}",
+      "Shop address": "={{ $('Prepare row and email').first().json.row['Shop address'] }}",
+      "Uses": "={{ $('Prepare row and email').first().json.row['Uses'] }}",
+      "Number of shops": "={{ $('Prepare row and email').first().json.row['Number of shops'] }}",
+      "Preferred web name": "={{ $('Prepare row and email').first().json.row['Preferred web name'] }}",
+      "Instagram / Facebook": "={{ $('Prepare row and email').first().json.row['Instagram / Facebook'] }}",
+      "Email": "={{ $('Prepare row and email').first().json.row['Email'] }}",
+      "Fruits sold": "={{ $('Prepare row and email').first().json.row['Fruits sold'] }}",
+      "Status": "={{ $('Prepare row and email').first().json.row['Status'] }}",
+      "Onboarded on": "={{ $('Prepare row and email').first().json.row['Onboarded on'] }}",
+      "Notes": "={{ $('Prepare row and email').first().json.row['Notes'] }}"
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "Submitted on",
+       "displayName": "Submitted on",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Business ID (suggested)",
+       "displayName": "Business ID (suggested)",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Shop name",
+       "displayName": "Shop name",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Owner name",
+       "displayName": "Owner name",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Mobile (WhatsApp)",
+       "displayName": "Mobile (WhatsApp)",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "City",
+       "displayName": "City",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Shop address",
+       "displayName": "Shop address",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Uses",
+       "displayName": "Uses",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Number of shops",
+       "displayName": "Number of shops",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Preferred web name",
+       "displayName": "Preferred web name",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Instagram / Facebook",
+       "displayName": "Instagram / Facebook",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Email",
+       "displayName": "Email",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Fruits sold",
+       "displayName": "Fruits sold",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Status",
+       "displayName": "Status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Onboarded on",
+       "displayName": "Onboarded on",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Notes",
+       "displayName": "Notes",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      }
+     ]
+    },
+    "options": {}
+   },
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "XZlgYis8bmHbJZZ8",
+     "name": "Google Sheets account"
+    }
+   }
+  },
+  {
+   "id": "50d0a1b4-43a5-4d63-ba7d-5f8dcb46c494",
+   "name": "Email Ankur",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    880,
+    0
+   ],
+   "parameters": {
+    "sendTo": "expertresourcing@gmail.com",
+    "subject": "={{ $('Prepare row and email').first().json.subject }}",
+    "message": "={{ $('Prepare row and email').first().json.html }}",
+    "options": {
+     "appendAttribution": false
+    }
+   },
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "NxBrjfizJOdieIgr",
+     "name": "Gmail account"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Hindi sign-up form": {
+   "main": [
+    [
+     {
+      "node": "Read onboarding sheet",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read onboarding sheet": {
+   "main": [
+    [
+     {
+      "node": "Prepare row and email",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Prepare row and email": {
+   "main": [
+    [
+     {
+      "node": "Save in Onboarding tab",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Save in Onboarding tab": {
+   "main": [
+    [
+     {
+      "node": "Email Ankur",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "timezone": "Asia/Kolkata",
+  "executionOrder": "v1",
+  "errorWorkflow": "kHUaPoQvrxmHKalL"
+ }
+}
