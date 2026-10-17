@@ -1,0 +1,45 @@
+{
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [ { "field": "days", "triggerAtHour": 15, "triggerAtMinute": 0 } ] } },
+      "id": "ap-1", "name": "Daily 3:00 pm", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [0, 1100]
+    },
+    {
+      "parameters": { "jsCode": "// pick a random minute between 3:00 and 5:00 pm IST\nreturn [{ json: { waitMinutes: Math.floor(Math.random() * 115) } }];" },
+      "id": "ap-2", "name": "Random time 3-5 pm", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [220, 1100]
+    },
+    {
+      "parameters": { "amount": "={{ $json.waitMinutes }}", "unit": "minutes" },
+      "id": "ap-3", "name": "Wait until posting time", "type": "n8n-nodes-base.wait", "typeVersion": 1.1, "position": [440, 1100], "webhookId": "5d7b2c1e-3f4a-4b6c-9d8e-1a2b3c4d5e6f"
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "mode": "id", "value": "1XRt3zf1oAE4jyYYMJgZjU75ZjUylY80yZtsfVuS4iJw" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Reels" },
+        "options": {}
+      },
+      "id": "ap-4", "name": "Read reels (auto)", "type": "n8n-nodes-base.googleSheets", "typeVersion": 4.5, "position": [660, 1100],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "XZlgYis8bmHbJZZ8", "name": "Google Sheets account" } }
+    },
+    {
+      "parameters": { "jsCode": "const today = $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd');\nconst rows = $input.all().map(r => r.json)\n  .filter(r => String(r.Status) === 'Ready' && String(r['Post date']) <= today)\n  .sort((a, b) => String(a['Post date']).localeCompare(String(b['Post date'])) || String(a.ID).localeCompare(String(b.ID)));\nreturn rows.length ? [{ json: { id: rows[0].ID } }] : [];" },
+      "id": "ap-5", "name": "Pick next reel", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [880, 1100]
+    },
+    {
+      "parameters": {
+        "method": "POST", "url": "https://fruitifyindia.app.n8n.cloud/webhook/fruitify-reel",
+        "sendBody": true, "contentType": "form-urlencoded",
+        "bodyParameters": { "parameters": [ { "name": "k", "value": "<APPROVAL_KEY>" }, { "name": "id", "value": "={{ $json.id }}" } ] },
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "ap-6", "name": "Post the reel", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1100, 1100]
+    }
+  ],
+  "connections": {
+    "Daily 3:00 pm": { "main": [[ { "node": "Random time 3-5 pm", "type": "main", "index": 0 } ]] },
+    "Random time 3-5 pm": { "main": [[ { "node": "Wait until posting time", "type": "main", "index": 0 } ]] },
+    "Wait until posting time": { "main": [[ { "node": "Read reels (auto)", "type": "main", "index": 0 } ]] },
+    "Read reels (auto)": { "main": [[ { "node": "Pick next reel", "type": "main", "index": 0 } ]] },
+    "Pick next reel": { "main": [[ { "node": "Post the reel", "type": "main", "index": 0 } ]] }
+  }
+}
