@@ -1,0 +1,114 @@
+[
+{
+"path": "voice/rates/hi_01.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "हर दुकान एक बिलबोर्ड। आज के रेट WhatsApp पर, [pause short] सिर्फ़ तीन Click में।"
+},
+{
+"path": "voice/rates/en_01.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Every shop is a billboard. Today's rates on WhatsApp, in three clicks."
+},
+{
+"path": "voice/rates/hi_02.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "अपना फ्रूटिफाई Console खोलें, [pause short] और Menu पर Click करें।"
+},
+{
+"path": "voice/rates/en_02.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Open your FRUiTIFY console, and click Menu."
+},
+{
+"path": "voice/rates/hi_03.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "Marketing पर Click करें, [pause short] फिर Marketing Material पर।"
+},
+{
+"path": "voice/rates/en_03.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Click Marketing, then Marketing Material."
+},
+{
+"path": "voice/rates/hi_04.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "Today's rates पर Click करें। आपके फल, [pause short] और आज के दाम, [pause short] अपने-आप भर जाते हैं।"
+},
+{
+"path": "voice/rates/en_04.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Click Today's rates. Your fruits and today's prices fill in by themselves."
+},
+{
+"path": "voice/rates/hi_05.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "आपकी रेट वाली फ़ोटो तैयार है, [pause short] आपकी फ़ोटो, [pause short] आपके दाम, [pause short] और आपकी दुकान का लिंक।"
+},
+{
+"path": "voice/rates/en_05.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Your rates picture is ready, with your photos, your prices, and your shop link."
+},
+{
+"path": "voice/rates/hi_06.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "हर फ़ोटो के नीचे लिखा है: Get your own online shop, [pause short] फ्रूटिफाई इंडिया डॉट कॉम।"
+},
+{
+"path": "voice/rates/en_06.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "At the bottom of every picture: Get your own online shop, fruitifyindia.com."
+},
+{
+"path": "voice/rates/hi_07.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "Share WhatsApp पर Click करें, [pause short] और अपने Status और ग्रुप में डालें।"
+},
+{
+"path": "voice/rates/en_07.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Click Share WhatsApp, and post it on your Status and in your groups."
+},
+{
+"path": "voice/rates/hi_08.mp3",
+"lang": "hi-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"markup": "रोज़ डालें। ग्राहक आपके लिंक पर ऑर्डर करते हैं, [pause short] और दूसरे फ्रूटवाले भैया भी, [pause short] अपनी ऑनलाइन दुकान पाते हैं।"
+},
+{
+"path": "voice/rates/en_08.mp3",
+"lang": "en-IN",
+"voice": "Achernar",
+"rate": 0.92,
+"text": "Post it every day. Customers order on your link, and other Fruitwale get their own online shop too."
+}
+]
