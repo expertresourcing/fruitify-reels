@@ -18,3 +18,9 @@ Agreed with Ankur 22 Oct 2026. Use the ONE answer that fits the doubt the seller
 ## Reply to a shop that says YES (send with the Instagram video link)
 बहुत धन्यवाद जी! 🙏 / इस छोटे वीडियो में देखिए, अपनी ऑनलाइन दुकान कैसे बनाएँ। / अपनी दुकान बनाने के लिए इस लिंक पर Click करें: / fruitifyindia.com/grow?lang=hi / दुकान बनने के बाद अपने Fruits और दाम डालें, और दुकान का लिंक WhatsApp Status और ग्रुप में डालें। ग्राहक उसी लिंक पर सीधे आपको ऑर्डर करेंगे। / नए टिप्स और वीडियो के लिए हमें Instagram पर Follow करें: / instagram.com/fruitify.india.byanay / कोई भी दिक्कत हो तो यहीं मैसेज कीजिए। / Team FRUiTIFY
 Video link Ankur used on 22 Oct: https://www.instagram.com/p/DeWjhUBRtfy/
+
+## New-shop check-ins (agreed 22 Oct 2026) - send from WhatsApp Business, one per day listed
+Day 1: नमस्ते जी! 🙏 / FRUiTIFY पर आपका स्वागत है। / आज बस अपने 5 Fruits और उनके दाम Add करें। / कोई भी दिक्कत हो तो यहीं मैसेज कीजिए। / Team FRUiTIFY
+Day 3: नमस्ते जी! 🙏 / अपनी दुकान का लिंक WhatsApp Status और अपने ग्राहकों के ग्रुप में डालिए। / ग्राहक उसी लिंक पर सीधे आपको ऑर्डर करेंगे। / Team FRUiTIFY
+Day 7: नमस्ते जी! 🙏 / Menu पर Click करें, फिर Marketing, फिर Today's rates। / आज के दाम की फ़ोटो बनकर तैयार, बस WhatsApp पर भेज दीजिए। / पहला ऑर्डर आया हो तो हमें ज़रूर बताइए! / Team FRUiTIFY
+("/" = blank line. Skip a check-in if the shop already did that step. Suspended shops (Saini Fruits, Ankit Fruits, 22 Oct) get nothing.)
