@@ -1,0 +1,23 @@
+[
+ {
+  "path": "voice/stock1/hi_g1.mp3",
+  "lang": "hi-IN",
+  "voice": "Callirrhoe",
+  "rate": 0.92,
+  "markup": "आपके Fruits, [pause short] इतने ताज़े। तो दुकान, [pause short] ऑनलाइन क्यों नहीं? अपनी ऑनलाइन दुकान, [pause short] आपके नाम से। इकतीस दिसंबर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_g2.mp3",
+  "lang": "hi-IN",
+  "voice": "Aoede",
+  "rate": 0.92,
+  "markup": "ग्राहक को, [pause short] सुंदर फ़ोटो चाहिए, [pause short] लंबी लिस्ट नहीं। हर Fruit की फ़ोटो, [pause short] और दाम, [pause short] एक ही लिंक पर। इकतीस दिसंबर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_g3.mp3",
+  "lang": "hi-IN",
+  "voice": "Achernar",
+  "rate": 0.92,
+  "markup": "नया Fruit आया? एक मिनट में, [pause short] दुकान पर लगाइए, [pause short] और ग्राहक को, [pause short] तुरंत दिख जाए। इकतीस दिसंबर तक, [pause short] कोई चार्ज नहीं।"
+ }
+]
