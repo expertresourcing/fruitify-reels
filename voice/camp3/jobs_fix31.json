@@ -1,0 +1,44 @@
+[
+ {
+  "path": "voice/stock1/hi_s1.mp3",
+  "lang": "hi-IN",
+  "voice": "Achernar",
+  "rate": 0.92,
+  "markup": "रात ग्यारह बजे, [pause short] ग्राहक का फ़ोन? अब ग्राहक, [pause short] खुद ऑर्डर करेगा, [pause short] आपकी अपनी ऑनलाइन दुकान पर। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_s2.mp3",
+  "lang": "hi-IN",
+  "voice": "Despina",
+  "rate": 0.92,
+  "markup": "रोज़ WhatsApp पर, [pause short] रेट लिस्ट टाइप करते हैं? अब एक लिंक भेजिए, [pause short] सारे Fruits, [pause short] और दाम, [pause short] एक ही जगह। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_s3.mp3",
+  "lang": "hi-IN",
+  "voice": "Vindemiatrix",
+  "rate": 0.92,
+  "markup": "ठेला हो, [pause short] या दुकान, [pause short] अब आप भी ऑनलाइन। Fruit सही वज़न से, [pause short] और पैसा, [pause short] सीधे आपको। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_g1.mp3",
+  "lang": "hi-IN",
+  "voice": "Callirrhoe",
+  "rate": 0.92,
+  "markup": "आपके Fruits, [pause short] इतने ताज़े। तो दुकान, [pause short] ऑनलाइन क्यों नहीं? अपनी ऑनलाइन दुकान, [pause short] आपके नाम से। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_g2.mp3",
+  "lang": "hi-IN",
+  "voice": "Aoede",
+  "rate": 0.92,
+  "markup": "ग्राहक को, [pause short] सुंदर फ़ोटो चाहिए, [pause short] लंबी लिस्ट नहीं। हर Fruit की फ़ोटो, [pause short] और दाम, [pause short] एक ही लिंक पर। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock1/hi_g3.mp3",
+  "lang": "hi-IN",
+  "voice": "Achernar",
+  "rate": 0.92,
+  "markup": "नया Fruit आया? एक मिनट में, [pause short] दुकान पर लगाइए, [pause short] और ग्राहक को, [pause short] तुरंत दिख जाए। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ }
+]
