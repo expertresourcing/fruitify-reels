@@ -24,3 +24,13 @@ Day 1: नमस्ते जी! 🙏 / FRUiTIFY पर आपका स्व�
 Day 3: नमस्ते जी! 🙏 / अपनी दुकान का लिंक WhatsApp Status और अपने ग्राहकों के ग्रुप में डालिए। / ग्राहक उसी लिंक पर सीधे आपको ऑर्डर करेंगे। / Team FRUiTIFY
 Day 7: नमस्ते जी! 🙏 / Menu पर Click करें, फिर Marketing, फिर Today's rates। / आज के दाम की फ़ोटो बनकर तैयार, बस WhatsApp पर भेज दीजिए। / पहला ऑर्डर आया हो तो हमें ज़रूर बताइए! / Team FRUiTIFY
 ("/" = blank line. Skip a check-in if the shop already did that step. Suspended shops (Saini Fruits, Ankit Fruits, 22 Oct) get nothing.)
+
+## WhatsApp Business app - greeting + quick replies (for click-to-WhatsApp boost, prepared 25 Oct 2026)
+GREETING (Settings > Business tools > Greeting message):
+नमस्ते जी! 🙏 / FRUiTIFY में आपका स्वागत है। हम Fruit की दुकानों को उनकी अपनी ऑनलाइन दुकान देते हैं, आपके नाम से। / 31 दिसंबर 2026 तक कोई चार्ज नहीं। / अपनी दुकान बनाने के लिए यहाँ Click करें: / fruitifyindia.com/grow?lang=hi / कोई सवाल हो तो यहीं लिखिए, हमारी टीम जल्दी जवाब देगी। / Team FRUiTIFY
+QUICK REPLY /dukan (ऑनलाइन दुकान कैसे बनाऊँ?):
+इस लिंक पर Click करके छोटा सा फ़ॉर्म भरिए: / fruitifyindia.com/grow?lang=hi / 24 घंटे में हमारी टीम आपकी दुकान का लिंक और Login WhatsApp पर भेज देगी। फिर अपने Fruits और दाम Add करें। / Team FRUiTIFY
+QUICK REPLY /shuru (कैसे शुरू करूँ?):
+शुरू करना आसान है जी! 🙏 / पहले यह फ़ॉर्म भरिए: fruitifyindia.com/grow?lang=hi / फिर हम आपको दुकान का लिंक भेजेंगे, आप अपने 5 Fruits और दाम Add करें, और लिंक ग्राहकों को भेजें। / चाहें तो अपना समय बताइए, हम फ़ोन पर साथ में बना देंगे। / Team FRUiTIFY
+QUICK REPLY /charge (क्या चार्ज लगता है?):
+31 दिसंबर 2026 तक कोई चार्ज नहीं है जी। 🙏 / उसके बाद प्लान आपकी दुकानों और इस्तेमाल के हिसाब से तय होगा, पहले चलाकर देखिए, फिर बात करेंगे। / आपकी Fruits की बिक्री पर कोई कमीशन नहीं, ग्राहक सीधे आपको पैसे देता है। / Team FRUiTIFY
