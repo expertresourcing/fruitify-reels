@@ -1,6 +1,32 @@
 [
-{"out":"reels/stock3/hi_k1.mp4","lang":"hi","voice":"voice/stock3/hi_k1.mp3","clipA":"stock/pexels-18547727.mp4","sA":0.5,"tA":3.5,"clipB":"stock/pexels-4156530.mp4","sB":1,"tB":4.0,
- "hook":"किराना भी ऑनलाइन: अपनी दुकान, अपने ग्राहक","body":"तैयार लिस्ट से सामान चुनिए, MRP और अपना रेट डालिए। कोई कमीशन नहीं","end1":"अपनी ऑनलाइन दुकान बनाइए","end2":"31 दिसंबर 2026 तक कोई चार्ज नहीं"},
-{"out":"reels/stock3/hi_v1.mp4","lang":"hi","voice":"voice/stock3/hi_v1.mp3","clipA":"stock/pexels-38287338.mp4","sA":0.5,"tA":3.5,"clipB":"stock/pexels-35315374.mp4","sB":1,"tB":4.0,
- "hook":"सब्ज़ी वाले भी FRUiTIFY पर","body":"ताज़ी सब्ज़ियाँ और Fruits, एक ही लिंक पर। ग्राहक सीधे आपको ऑर्डर करे","end1":"अपनी ऑनलाइन दुकान बनाइए","end2":"31 दिसंबर 2026 तक कोई चार्ज नहीं"}
+ {
+  "out": "reels/stock3/hi_k1.mp4",
+  "lang": "hi",
+  "voice": "voice/stock3/hi_k1.mp3",
+  "clipA": "stock/pexels-4156530.mp4",
+  "sA": 0.5,
+  "tA": 3.5,
+  "clipB": "stock/pexels-35315374.mp4",
+  "sB": 1,
+  "tB": 4.0,
+  "hook": "किराना भी ऑनलाइन: अपनी दुकान, अपने ग्राहक",
+  "body": "तैयार लिस्ट से सामान चुनिए, MRP और अपना रेट डालिए। कोई कमीशन नहीं",
+  "end1": "अपनी ऑनलाइन दुकान बनाइए",
+  "end2": "31 दिसंबर 2026 तक कोई चार्ज नहीं"
+ },
+ {
+  "out": "reels/stock3/hi_v1.mp4",
+  "lang": "hi",
+  "voice": "voice/stock3/hi_v1.mp3",
+  "clipA": "stock/pexels-38287338.mp4",
+  "sA": 0.5,
+  "tA": 3.5,
+  "clipB": "stock/pexels-39883945.mp4",
+  "sB": 2,
+  "tB": 4.0,
+  "hook": "सब्ज़ी वाले भी FRUiTIFY पर",
+  "body": "ताज़ी सब्ज़ियाँ और Fruits, एक ही लिंक पर। ग्राहक सीधे आपको ऑर्डर करे",
+  "end1": "अपनी ऑनलाइन दुकान बनाइए",
+  "end2": "31 दिसंबर 2026 तक कोई चार्ज नहीं"
+ }
 ]
