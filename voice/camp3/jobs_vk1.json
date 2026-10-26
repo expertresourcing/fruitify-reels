@@ -1,0 +1,16 @@
+[
+ {
+  "path": "voice/stock3/hi_k1.mp3",
+  "lang": "hi-IN",
+  "voice": "Callirrhoe",
+  "rate": 0.92,
+  "markup": "किराना भी, [pause short] अब ऑनलाइन। आपकी अपनी दुकान, [pause short] आपके अपने ग्राहक। तैयार लिस्ट से सामान चुनिए, [pause short] MRP और अपना रेट डालिए। कोई कमीशन नहीं। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ },
+ {
+  "path": "voice/stock3/hi_v1.mp3",
+  "lang": "hi-IN",
+  "voice": "Aoede",
+  "rate": 0.92,
+  "markup": "सब्ज़ी वाले भी, [pause short] अब FRUiTIFY पर। ताज़ी सब्ज़ियाँ, [pause short] और Fruits, [pause short] एक ही लिंक पर। ग्राहक सीधे, [pause short] आपको ऑर्डर करेगा। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"
+ }
+]
