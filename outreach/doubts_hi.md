@@ -23,11 +23,17 @@ Video link Ankur used on 22 Oct: https://www.instagram.com/p/DeWjhUBRtfy/
 Day 1: नमस्ते जी! 🙏 / FRUiTIFY पर आपका स्वागत है। / आज बस अपने 5 Fruits और उनके दाम Add करें। / कोई भी दिक्कत हो तो यहीं मैसेज कीजिए। / Team FRUiTIFY
 Day 3: नमस्ते जी! 🙏 / अपनी दुकान का लिंक WhatsApp Status और अपने ग्राहकों के ग्रुप में डालिए। / ग्राहक उसी लिंक पर सीधे आपको ऑर्डर करेंगे। / Team FRUiTIFY
 Day 7: नमस्ते जी! 🙏 / Menu पर Click करें, फिर Marketing, फिर Today's rates। / आज के दाम की फ़ोटो बनकर तैयार, बस WhatsApp पर भेज दीजिए। / पहला ऑर्डर आया हो तो हमें ज़रूर बताइए! / Team FRUiTIFY
+KIRANA / GROCERY shop check-ins (26 Oct):
+Day 1: नमस्ते जी! 🙏 / FRUiTIFY पर आपका स्वागत है। / Business Profile में Grocery पर टिक करें। फिर तैयार लिस्ट से अपने 10 सामान चुनिए, पैक साइज़, MRP और अपना रेट डालिए। / अपना रेट MRP से ज़्यादा नहीं हो सकता, और कम होने पर ग्राहक को MRP कटा हुआ दिखेगा। / कोई भी दिक्कत हो तो यहीं मैसेज कीजिए। / Team FRUiTIFY
+Day 3: नमस्ते जी! 🙏 / अपने सामान की अपनी फ़ोटो खींचकर Add करें, फ़ोटो वाला सामान ग्राहक ज़्यादा खरीदते हैं। / फिर दुकान का लिंक WhatsApp Status और ग्राहकों के ग्रुप में डालिए। / Team FRUiTIFY
+Day 7: same as the Fruit Day 7.
+VEG shops: same Day 1/3/7, but Day 1 says "Business Profile में Vegetables पर टिक करें। आज बस अपनी 5 सब्ज़ियाँ और उनके दाम Add करें।"
+
 ("/" = blank line. Skip a check-in if the shop already did that step. Suspended shops (Saini Fruits, Ankit Fruits, 22 Oct) get nothing.)
 
 ## WhatsApp Business app - greeting + quick replies (for click-to-WhatsApp boost, prepared 25 Oct 2026)
 GREETING (Settings > Business tools > Greeting message):
-नमस्ते जी! 🙏 / FRUiTIFY में आपका स्वागत है। हम Fruit की दुकानों को उनकी अपनी ऑनलाइन दुकान देते हैं, आपके नाम से। / 31 दिसंबर 2026 तक कोई चार्ज नहीं। / अपनी दुकान बनाने के लिए यहाँ Click करें: / fruitifyindia.com/grow?lang=hi / कोई सवाल हो तो यहीं लिखिए, हमारी टीम जल्दी जवाब देगी। / Team FRUiTIFY
+नमस्ते जी! 🙏 / FRUiTIFY में आपका स्वागत है। हम Fruit, सब्ज़ी और किराना दुकानों को उनकी अपनी ऑनलाइन दुकान देते हैं, आपके नाम से। / 31 दिसंबर 2026 तक कोई चार्ज नहीं। / अपनी दुकान बनाने के लिए यहाँ Click करें: / fruitifyindia.com/grow?lang=hi / कोई सवाल हो तो यहीं लिखिए, हमारी टीम जल्दी जवाब देगी। / Team FRUiTIFY
 QUICK REPLY /dukan (ऑनलाइन दुकान कैसे बनाऊँ?):
 इस लिंक पर Click करके छोटा सा फ़ॉर्म भरिए: / fruitifyindia.com/grow?lang=hi / 24 घंटे में हमारी टीम आपकी दुकान का लिंक और Login WhatsApp पर भेज देगी। फिर अपने Fruits और दाम Add करें। / Team FRUiTIFY
 QUICK REPLY /shuru (कैसे शुरू करूँ?):
