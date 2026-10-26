@@ -34,3 +34,14 @@ QUICK REPLY /shuru (कैसे शुरू करूँ?):
 शुरू करना आसान है जी! 🙏 / पहले यह फ़ॉर्म भरिए: fruitifyindia.com/grow?lang=hi / फिर हम आपको दुकान का लिंक भेजेंगे, आप अपने 5 Fruits और दाम Add करें, और लिंक ग्राहकों को भेजें। / चाहें तो अपना समय बताइए, हम फ़ोन पर साथ में बना देंगे। / Team FRUiTIFY
 QUICK REPLY /charge (क्या चार्ज लगता है?):
 31 दिसंबर 2026 तक कोई चार्ज नहीं है जी। 🙏 / उसके बाद प्लान आपकी दुकानों और इस्तेमाल के हिसाब से तय होगा, पहले चलाकर देखिए, फिर बात करेंगे। / आपकी Fruits की बिक्री पर कोई कमीशन नहीं, ग्राहक सीधे आपको पैसे देता है। / Team FRUiTIFY
+
+## WHO CAN JOIN (Ankur, 26 Oct 2026)
+Fruit shops, vegetable sellers and kirana/grocery/general stores - same offer (no charges till 31 Dec 2026, paid from Jan 2027), same link fruitifyindia.com/grow?lang=hi.
+Facts: owner ticks Fruits / Vegetables / Grocery in Business Profile; customers see tabs All Items · Fruits · Vegetables · Grocery; grocery from a ready list of ~130 common products - pick pack size, enter MRP and own rate; rate can never exceed MRP; MRP shown struck out when the shop's price is lower.
+Selling points: one online shop for Fruits, vegetables and kirana; customers order from their known shop, not an unseen dark store; no commission; MRP always respected. NEVER name competitor apps. NEVER use brand pack photos from the internet in reels/posts - only our own or shopkeepers' photos.
+
+VEGETABLE SHOP first message (WhatsApp, no link/number):
+नमस्ते जी! 🙏 / {city} में {shop} की ताज़ी सब्ज़ियाँ देखकर अच्छा लगा। / हम FRUiTIFY से हैं। आपकी अपनी ऑनलाइन सब्ज़ी की दुकान, आपके नाम से। ग्राहक आपके लिंक पर सब्ज़ी चुनकर सीधे आपको ऑर्डर करते हैं। / 31 दिसंबर 2026 तक कोई चार्ज नहीं। / क्या आप देखना चाहेंगे कि यह कैसे काम करता है? / Team FRUiTIFY
+
+KIRANA / GENERAL STORE first message (WhatsApp, no link/number):
+नमस्ते जी! 🙏 / {city} में {shop} का काम देखकर अच्छा लगा। / हम FRUiTIFY से हैं। आपकी किराना दुकान अब ऑनलाइन, आपके नाम से। 130 आम सामान की तैयार लिस्ट से चुनिए, MRP और अपना रेट डालिए, ग्राहक सीधे आपको ऑर्डर करेंगे। / आपकी बिक्री पर कोई कमीशन नहीं, और MRP से ज़्यादा रेट कभी नहीं। / 31 दिसंबर 2026 तक कोई चार्ज नहीं। / क्या आप देखना चाहेंगे कि यह कैसे काम करता है? / Team FRUiTIFY
