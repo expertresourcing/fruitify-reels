@@ -1,0 +1,8 @@
+[
+ {"path":"voice/stock4/hi_f4.mp3","lang":"hi-IN","voice":"Despina","rate":0.92,
+  "markup":"ग्राहक रोज़ पूछते हैं, [pause short] आज के दाम क्या हैं? अब एक Click में, [pause short] आज के दाम की फ़ोटो तैयार। सीधे WhatsApp पर भेजिए। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"},
+ {"path":"voice/stock4/hi_v2.mp3","lang":"hi-IN","voice":"Achernar","rate":0.92,
+  "markup":"सुबह की ताज़ी सब्ज़ी, [pause short] सुबह ही ऑनलाइन। दाम बदले? एक मिनट में बदलिए, [pause short] और ग्राहक सीधे आपको ऑर्डर करे। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"},
+ {"path":"voice/stock4/hi_k2.mp3","lang":"hi-IN","voice":"Leda","rate":0.92,
+  "markup":"MRP से ज़्यादा नहीं, [pause short] और कोई कमीशन नहीं। मोहल्ले के ग्राहक, [pause short] अब आपकी ऑनलाइन किराना दुकान पर। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"}
+]
