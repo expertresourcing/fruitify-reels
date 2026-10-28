@@ -51,3 +51,7 @@ VEGETABLE SHOP first message (WhatsApp, no link/number):
 
 KIRANA / GENERAL STORE first message (WhatsApp, no link/number):
 नमस्ते जी! 🙏 / {city} में {shop} का काम देखकर अच्छा लगा। / हम FRUiTIFY से हैं। आपकी किराना दुकान अब ऑनलाइन, आपके नाम से। 130 आम सामान की तैयार लिस्ट से चुनिए, MRP और अपना रेट डालिए, ग्राहक सीधे आपको ऑर्डर करेंगे। / आपकी बिक्री पर कोई कमीशन नहीं, और MRP से ज़्यादा रेट कभी नहीं। / 31 दिसंबर 2026 तक कोई चार्ज नहीं। / क्या आप देखना चाहेंगे कि यह कैसे काम करता है? / Team FRUiTIFY
+
+
+## CHECK BEFORE DRAFTING (28 Oct, after the Chetan Choudhary case)
+Before drafting any Instagram or WhatsApp message to a person, search WhatsApp Web (name, shop, number) and the CRM for earlier contact. If Ankur has already spoken to them or sent details, do not send a fresh pitch; at most one short follow-up, and only after asking Ankur. Chetan Choudhary (@choudharyfruitimport_export, import/export): Ankur discussed everything and shared details the week of 20 Oct; no response yet - no new pitch.
