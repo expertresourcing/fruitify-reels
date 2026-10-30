@@ -55,3 +55,7 @@ KIRANA / GENERAL STORE first message (WhatsApp, no link/number):
 
 ## CHECK BEFORE DRAFTING (28 Oct, after the Chetan Choudhary case)
 Before drafting any Instagram or WhatsApp message to a person, search WhatsApp Web (name, shop, number) and the CRM for earlier contact. If Ankur has already spoken to them or sent details, do not send a fresh pitch; at most one short follow-up, and only after asking Ankur. Chetan Choudhary (@choudharyfruitimport_export, import/export): Ankur discussed everything and shared details the week of 20 Oct; no response yet - no new pitch.
+
+
+## WHATSAPP IS SHARED (30 Oct)
+Ankur's WhatsApp 9611701149 is also used for his training, payroll and other businesses. Only touch FRUiTIFY chats: numbers from our CRM/outreach lists, people who replied to a FRUiTIFY message, or contacts saved with 'Fruitify' in the name. Never read-and-reply, draft, or follow up in any other chat (saved contacts like trainers, clients, candidates, banks, etc.). When in doubt, leave it and mention it to Ankur.
