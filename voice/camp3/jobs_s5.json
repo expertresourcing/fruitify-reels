@@ -1,0 +1,8 @@
+[
+ {"path":"voice/stock5/hi_f5.mp3","lang":"hi-IN","voice":"Aoede","rate":0.92,
+  "markup":"दुकान बंद हो गई? [pause short] फिर भी ऑर्डर आएगा। आपकी ऑनलाइन दुकान, [pause short] चौबीस घंटे खुली। ग्राहक लिंक पर Fruits चुनकर, [pause short] सीधे आपको ऑर्डर करेगा। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"},
+ {"path":"voice/stock5/hi_v3.mp3","lang":"hi-IN","voice":"Despina","rate":0.92,
+  "markup":"अनजान गोदाम नहीं, [pause short] पहचान की दुकान। ग्राहक आपको जानते हैं, [pause short] अब ऑर्डर भी आपको ही देंगे। सब्ज़ी, [pause short] Fruits और किराना, [pause short] एक ही ऑनलाइन दुकान में। इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"},
+ {"path":"voice/stock5/hi_k3.mp3","lang":"hi-IN","voice":"Callirrhoe","rate":0.92,
+  "markup":"कमाई पूरी आपकी। [pause short] बिक्री पर कोई कमीशन नहीं। आपका नाम, [pause short] आपके दाम, [pause short] आपके ग्राहक। अपनी ऑनलाइन दुकान बनाइए, [pause short] इकत्तीस दिसम्बर तक, [pause short] कोई चार्ज नहीं।"}
+]
