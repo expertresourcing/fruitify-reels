@@ -1,0 +1,47 @@
+[
+ {
+  "out": "reels/stock6/hi_f6.mp4",
+  "lang": "hi",
+  "voice": "voice/stock6/hi_f6.mp3",
+  "clipA": "stock/pexels-36108518.mp4",
+  "sA": 8,
+  "tA": 3.5,
+  "clipB": "stock/pexels-15689201.mp4",
+  "sB": 1,
+  "tB": 4.0,
+  "hook": "आज के दाम? एक Click में",
+  "body": "आज के दाम की फ़ोटो तैयार, बस WhatsApp Status पर लगाइए",
+  "end1": "अपनी ऑनलाइन दुकान बनाइए",
+  "end2": "31 दिसंबर 2026 तक कोई चार्ज नहीं"
+ },
+ {
+  "out": "reels/stock6/hi_v4.mp4",
+  "lang": "hi",
+  "voice": "voice/stock6/hi_v4.mp3",
+  "clipA": "stock/pexels-35315374.mp4",
+  "sA": 1,
+  "tA": 3.5,
+  "clipB": "stock/pexels-34923905.mp4",
+  "sB": 4,
+  "tB": 4.0,
+  "hook": "दुकान आपकी, नाम भी आपका",
+  "body": "आपकी ऑनलाइन दुकान, आपके नाम से, अपने लिंक के साथ",
+  "end1": "अपनी ऑनलाइन दुकान बनाइए",
+  "end2": "31 दिसंबर 2026 तक कोई चार्ज नहीं"
+ },
+ {
+  "out": "reels/stock6/hi_k4.mp4",
+  "lang": "hi",
+  "voice": "voice/stock6/hi_k4.mp3",
+  "clipA": "stock/pexels-34765363.mp4",
+  "sA": 10,
+  "tA": 3.5,
+  "clipB": "stock/pexels-8165696.mp4",
+  "sB": 5,
+  "tB": 4.0,
+  "hook": "किराना का सामान, अब ऑनलाइन",
+  "body": "130 आम सामान की तैयार लिस्ट, MRP और अपना रेट डालिए",
+  "end1": "अपनी ऑनलाइन दुकान बनाइए",
+  "end2": "31 दिसंबर 2026 तक कोई चार्ज नहीं"
+ }
+]
