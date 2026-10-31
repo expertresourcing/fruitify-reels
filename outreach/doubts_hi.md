@@ -59,3 +59,7 @@ Before drafting any Instagram or WhatsApp message to a person, search WhatsApp W
 
 ## WHATSAPP IS SHARED (30 Oct)
 Ankur's WhatsApp 9611701149 is also used for his training, payroll and other businesses. Only touch FRUiTIFY chats: numbers from our CRM/outreach lists, people who replied to a FRUiTIFY message, or contacts saved with 'Fruitify' in the name. Never read-and-reply, draft, or follow up in any other chat (saved contacts like trainers, clients, candidates, banks, etc.). When in doubt, leave it and mention it to Ankur.
+
+## WHATSAPP AD LEADS + DISAPPEARING TIMER (Ankur, 31 Oct 2026)
+Chats from the click-to-WhatsApp ad start with "नमस्ते, मुझे अपनी दुकान ऑनलाइन करनी है (FRUiTIFY)". Reply the same day (Ankur presses Send): thanks / short form link fruitifyindia.com/grow?lang=hi / 24 घंटे में दुकान का लिंक और Login / 31 दिसंबर 2026 तक कोई चार्ज नहीं, कोई कमीशन नहीं / Team FRUiTIFY. If they already gave shop name + city, mention it.
+Before drafting, check the chat for a disappearing-messages timer (message bubbles with aria-label "This is a disappearing message", or the "uses a default timer" notice). If on, add: "एक छोटी गुज़ारिश: इस चैट में Disappearing messages टाइमर चालू है, इससे हमारी बातें अपने-आप मिट जाएँगी। चैट में ऊपर हमारे नाम पर Click करें, फिर Disappearing messages पर Click करके Off चुन लीजिए।"
