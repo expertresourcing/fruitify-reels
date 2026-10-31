@@ -9,7 +9,7 @@
   "clipB": "stock/pexels-15689201.mp4",
   "sB": 1,
   "tB": 4.0,
-  "hook": "आज के दाम? एक Click में",
+  "hook": "आज के दाम? एक Click",
   "body": "आज के दाम की फ़ोटो तैयार, बस WhatsApp Status पर लगाइए",
   "end1": "अपनी ऑनलाइन दुकान बनाइए",
   "end2": "31 दिसंबर 2026 तक कोई चार्ज नहीं"
@@ -34,7 +34,7 @@
   "lang": "hi",
   "voice": "voice/stock6/hi_k4.mp3",
   "clipA": "stock/pexels-34765363.mp4",
-  "sA": 10,
+  "sA": 1,
   "tA": 3.5,
   "clipB": "stock/pexels-8165696.mp4",
   "sB": 5,
